@@ -28,7 +28,6 @@
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
 #define PING_PERIOD_MS          250
-#define NO_OF_DATA_MSGS         50
 #define NO_OF_ITERS             3
 #define ITER_DELAY_MS           1000
 #define RX_TASK_PRIO            8
@@ -97,8 +96,7 @@ static void twai_receive_task(void *arg)
             }
         } else if (action == RX_RECEIVE_DATA) {
             //Receive data messages from slave
-            uint32_t data_msgs_rec = 0;
-            while (data_msgs_rec < NO_OF_DATA_MSGS) {
+            while (1) {
                 twai_message_t rx_msg;
                 twai_receive(&rx_msg, portMAX_DELAY);
                 if (rx_msg.identifier == ID_SLAVE_DATA) {
@@ -107,7 +105,6 @@ static void twai_receive_task(void *arg)
                         data |= (rx_msg.data[i] << (i * 8));
                     }
                     ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
-                    data_msgs_rec ++;
                 }
             }
             xSemaphoreGive(ctrl_task_sem);
