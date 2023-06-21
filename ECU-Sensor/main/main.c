@@ -26,6 +26,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "driver/twai.h"
+#include "driver/adc.h"
 
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
@@ -37,6 +38,8 @@
 #define TX_GPIO_NUM                     GPIO_NUM_5
 #define RX_GPIO_NUM                     GPIO_NUM_4
 #define EXAMPLE_TAG                     "TWAI Slave"
+
+#define ADC_PIN                         34
 
 #define ID_MASTER_STOP_CMD              0x0A0
 #define ID_MASTER_START_CMD             0x0A1
@@ -75,6 +78,8 @@ static QueueHandle_t rx_task_queue;
 static SemaphoreHandle_t ctrl_task_sem;
 static SemaphoreHandle_t stop_data_sem;
 static SemaphoreHandle_t done_sem;
+
+uint32_t potencia;
 
 /* --------------------------- Tasks and Functions -------------------------- */
 
@@ -137,12 +142,14 @@ static void twai_transmit_task(void *arg)
             ESP_LOGI(EXAMPLE_TAG, "Start transmitting data");
             while (1) {
                 //FreeRTOS tick count used to simulate sensor data -> DEVEMOS MUDAR ESSA PARTE PARA PEGAR DADOS DO SENSOR
-                uint32_t sensor_data = xTaskGetTickCount();
+                // uint32_t sensor_data = xTaskGetTickCount();
+                potencia = adc1_get_raw(ADC1_CHANNEL_6);
+
                 for (int i = 0; i < 4; i++) {
-                    data_message.data[i] = (sensor_data >> (i * 8)) & 0xFF;
+                    data_message.data[i] = (potencia >> (i * 8)) & 0xFF;
                 }
                 twai_transmit(&data_message, portMAX_DELAY);
-                ESP_LOGI(EXAMPLE_TAG, "Transmitted data value %"PRIu32, sensor_data);
+                ESP_LOGI(EXAMPLE_TAG, "Transmitted data value %"PRIu32, potencia);
                 vTaskDelay(pdMS_TO_TICKS(DATA_PERIOD_MS));
                 if (xSemaphoreTake(stop_data_sem, 0) == pdTRUE) {
                     break;
