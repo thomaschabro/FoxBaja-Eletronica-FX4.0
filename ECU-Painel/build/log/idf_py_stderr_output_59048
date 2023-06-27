@@ -1,0 +1,18 @@
+CMake Error at C:/Espressif/frameworks/esp-idf-v5.0.2/tools/cmake/component.cmake:484 (add_library):
+  Cannot find source file:
+
+    C:/Espressif/frameworks/esp-idf-v5.0.2/components/driver/hd44780.c
+
+  Tried extensions .c .C .c++ .cc .cpp .cxx .cu .mpp .m .M .mm .ixx .cppm .h
+  .hh .h++ .hm .hpp .hxx .in .txx .f .F .for .f77 .f90 .f95 .f03 .hip .ispc
+Call Stack (most recent call first):
+  C:/Espressif/frameworks/esp-idf-v5.0.2/components/driver/CMakeLists.txt:122 (idf_component_register)
+
+
+CMake Error at C:/Espressif/frameworks/esp-idf-v5.0.2/tools/cmake/component.cmake:484 (add_library):
+  No SOURCES given to target: __idf_driver
+Call Stack (most recent call first):
+  C:/Espressif/frameworks/esp-idf-v5.0.2/components/driver/CMakeLists.txt:122 (idf_component_register)
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.
