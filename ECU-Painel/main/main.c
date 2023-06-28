@@ -21,12 +21,14 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
+#include "freertos/timers.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "driver/twai.h"
 #include "driver/i2c.h"
 #include "sdkconfig.h"
 #include "unistd.h"
+#include "i2c-lcd.h"
 
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
@@ -46,6 +48,30 @@
 #define ID_SLAVE_STOP_RESP      0x0B0
 #define ID_SLAVE_DATA           0x0B1
 #define ID_SLAVE_PING_RESP      0x0B2
+
+// Para o Display LCD
+#define I2C_MASTER_SCL_IO           GPIO_NUM_22    /*!< gpio number for I2C master clock */
+#define I2C_MASTER_SDA_IO           GPIO_NUM_21    /*!< gpio number for I2C master data  */
+#define I2C_MASTER_NUM              I2C_NUM_0              /*!< I2C port number for master dev */
+#define I2C_MASTER_FREQ_HZ          400000         /*!< I2C master clock frequency */
+#define I2C_MASTER_TX_BUFF_DISABLE  0              /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_RX_BUFF_DISABLE  0              /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_TIMEOUT_MS       1000           /*!< I2C timeout ms */
+#define SLAVE_ADDRESS_LCD           0x27          /*!< ESP32 slave address for LCD */
+
+// Para o Timer
+#define TIMER_DIVIDER             16  // Hardware timer clock divider
+#define TIMER_SCALE               (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
+
+static const char *TAG = "ECU-Painel";
+
+typedef struct {
+    int timer_group;
+    int timer_idx;
+    int alarm_interval;
+    bool auto_reload;
+} example_timer_info_t;
+
 
 typedef enum {
     TX_SEND_PINGS,
@@ -74,97 +100,85 @@ static const twai_message_t stop_message = {.identifier = ID_MASTER_STOP_CMD, .d
 
 static QueueHandle_t tx_task_queue;
 static QueueHandle_t rx_task_queue;
+static QueueHandle_t display_task_queue;
+
 static SemaphoreHandle_t stop_ping_sem;
 static SemaphoreHandle_t ctrl_task_sem;
 static SemaphoreHandle_t done_sem;
 
+static TimerHandle_t xTimers;
+
+int interval = 500; 
+int TimerId = 1;
+int potencia = 0;
+
 /* ------------------------------ Funções LCD ----------------------------- */
 static esp_err_t i2c_master_init(void)
 {
+    int i2c_master_port = I2C_MASTER_NUM; 
+
     i2c_config_t conf = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = GPIO_NUM_21,
-        .scl_io_num = GPIO_NUM_22,
+        .sda_io_num = I2C_MASTER_SDA_IO,
+        .scl_io_num = I2C_MASTER_SCL_IO,
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = 100000,
     };
 
-    i2c_param_config(I2C_NUM_0, &conf);
+    i2c_param_config(i2c_master_port, &conf);
 
-    return i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0);
+    return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUFF_DISABLE, I2C_MASTER_TX_BUFF_DISABLE, 0);
 }
 
-void lcd_send_cmd (char cmd)
-{
-	esp_err_t err;
-	char data_u, data_l;
-	uint8_t data_t[4];
-	data_u = (cmd&0xf0);
-	data_l = ((cmd<<4)&0xf0);
-	data_t[0] = data_u|0x0C;  //en=1, rs=0
-	data_t[1] = data_u|0x08;  //en=0, rs=0
-	data_t[2] = data_l|0x0C;  //en=1, rs=0
-	data_t[3] = data_l|0x08;  //en=0, rs=0
+/* ------------------------------ Funções Timer ----------------------------- */
 
-	err= i2c_master_write_to_device (0x1, 0x0, data_t, 4, 1000);
-	// if (err != 0) ESP_LOGI(TAG, "Error no. %d in command", err);
+void vtimer_callback( TimerHandle_t pxTimer ) {
+
+    xQueueSendFromISR(display_task_queue, &potencia, NULL);   
+
 }
 
-void lcd_init (void)
-{
-	// 4 bit initialisation
-	usleep(50000);  // wait for >40ms
-	lcd_send_cmd (0x30);
-	usleep(4500);  // wait for >4.1ms
-	lcd_send_cmd (0x30);
-	usleep(200);  // wait for >100us
-	lcd_send_cmd (0x30);
-	usleep(200);
-	lcd_send_cmd (0x20);  // 4bit mode
-	usleep(200);
+esp_err_t set_timer(void) {
 
-  // dislay initialisation
-	lcd_send_cmd (0x28); // Function set --> DL=0 (4 bit mode), N = 1 (2 line display) F = 0 (5x8 characters)
-	usleep(1000);
-	lcd_send_cmd (0x08); //Display on/off control --> D=0,C=0, B=0  ---> display off
-	usleep(1000);
-	lcd_send_cmd (0x01);  // clear display
-	usleep(1000);
-	usleep(1000);
-	lcd_send_cmd (0x06); //Entry mode set --> I/D = 1 (increment cursor) & S = 0 (no shift)
-	usleep(1000);
-	lcd_send_cmd (0x0C); //Display on/off control --> D = 1, C and B = 0. (Cursor and blink, last two bits)
-	usleep(2000);
-}
+    xTimers = xTimerCreate("timer", pdMS_TO_TICKS(interval), pdTRUE, (void *)TimerId, vtimer_callback);
+    
+    if (xTimers == NULL) {
+        
+        ESP_LOGI(TAG, "Erro ao criar o timer");
 
-void lcd_put_cur(int row, int col)
-{
-    switch (row)
-    {
-        case 0:
-            col |= 0x80;
-            break;
-        case 1:
-            col |= 0xC0;
-            break;
+    } else {
+        
+        if (xTimerStart(xTimers, 0) != pdPASS) {
+            ESP_LOGI(TAG, "Erro ao iniciar o timer");
+        }
+    
     }
 
-    lcd_send_cmd (col);
-}
 
-void lcd_send_string (char *str)
-{
-	while (*str) lcd_send_data (*str++);
-}
 
-void lcd_clear (void)
-{
-	lcd_send_cmd (0x01);
-	usleep(5000);
+    return ESP_OK;
 }
 
 /* --------------------------- Tasks and Functions -------------------------- */
+
+static void display_update_task(void *arg) {
+    uint8_t data[16];
+
+    for (;;) {
+        
+        // Verifica se chegou algo na queue
+        int potencia_rec;
+        if (xQueueReceive(display_task_queue, &potencia_rec, portMAX_DELAY) == pdTRUE) {
+
+            sprintf((char *)data, "Potencia: %d", potencia_rec);
+            lcd_put_cur(1, 0);
+            lcd_send_string((char *)data);
+
+        }
+    
+    }
+}
 
 static void twai_receive_task(void *arg)
 {
@@ -193,6 +207,7 @@ static void twai_receive_task(void *arg)
                     for (int i = 0; i < rx_msg.data_length_code; i++) {
                         data |= (rx_msg.data[i] << (i * 8));
                     }
+                    potencia = data;
                     ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
                 }
             }
@@ -288,14 +303,27 @@ static void twai_control_task(void *arg)
     vTaskDelete(NULL);
 }
 
-void app_main(void)
+void app_main(void) 
 {
+    // Inializando o I2C/LCD
+    ESP_ERROR_CHECK(i2c_master_init());
+    ESP_LOGI(TAG, "I2C inicializado com sucesso!");
+
+    lcd_init();
+    lcd_put_cur(0,0);
+    lcd_send_string("ECU-Painel");    
+
+    // Criando timer para atualizar o LCD
+    set_timer();    
+
     //Create tasks, queues, and semaphores
-    rx_task_queue = xQueueCreate(1, sizeof(rx_task_action_t));
-    tx_task_queue = xQueueCreate(1, sizeof(tx_task_action_t));
-    ctrl_task_sem = xSemaphoreCreateBinary();
-    stop_ping_sem = xSemaphoreCreateBinary();
-    done_sem = xSemaphoreCreateBinary();
+    display_task_queue = xQueueCreate(1, sizeof(int));
+    rx_task_queue      = xQueueCreate(1, sizeof(rx_task_action_t));
+    tx_task_queue      = xQueueCreate(1, sizeof(tx_task_action_t));
+    ctrl_task_sem      = xSemaphoreCreateBinary();
+    stop_ping_sem      = xSemaphoreCreateBinary();
+    done_sem           = xSemaphoreCreateBinary();
+    xTaskCreatePinnedToCore(display_update_task, "Atualiza o painel", 4096, NULL, RX_TASK_PRIO, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
