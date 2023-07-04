@@ -48,6 +48,9 @@
 #define ID_SLAVE_STOP_RESP      0x0B0
 #define ID_SLAVE_DATA           0x0B1
 #define ID_SLAVE_PING_RESP      0x0B2
+#define ID_SLAVE2_STOP_RESP     0x0C0
+#define ID_SLAVE2_DATA          0x0C1
+#define ID_SLAVE2_PING_RESP     0x0C2
 
 // Para o Display LCD
 #define I2C_MASTER_SCL_IO           GPIO_NUM_22    /*!< gpio number for I2C master clock */
@@ -110,7 +113,8 @@ static TimerHandle_t xTimers;
 
 int interval = 500; 
 int TimerId = 1;
-int potencia = 0;
+int potencia1 = 0;
+int potencia2 = 0;
 
 /* ------------------------------ Funções LCD ----------------------------- */
 static esp_err_t i2c_master_init(void)
@@ -135,7 +139,7 @@ static esp_err_t i2c_master_init(void)
 
 void vtimer_callback( TimerHandle_t pxTimer ) {
 
-    xQueueSendFromISR(display_task_queue, &potencia, NULL);   
+    xQueueSendFromISR(display_task_queue, &potencia1, NULL);   
 
 }
 
@@ -168,10 +172,10 @@ static void display_update_task(void *arg) {
     for (;;) {
         
         // Verifica se chegou algo na queue
-        int potencia_rec;
-        if (xQueueReceive(display_task_queue, &potencia_rec, portMAX_DELAY) == pdTRUE) {
+        int identifier;
+        if (xQueueReceive(display_task_queue, &identifier, portMAX_DELAY) == pdTRUE) {
 
-            sprintf((char *)data, "Potencia: %d", potencia_rec);
+            sprintf((char *)data, "Potencia1: %d", potencia1);
             lcd_put_cur(1, 0);
             lcd_send_string((char *)data);
 
@@ -207,8 +211,15 @@ static void twai_receive_task(void *arg)
                     for (int i = 0; i < rx_msg.data_length_code; i++) {
                         data |= (rx_msg.data[i] << (i * 8));
                     }
-                    potencia = data;
+                    potencia1 = data;
                     ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
+                } else if (rx_msg.identifier == ID_SLAVE2_DATA) {
+                    uint32_t data = 0;
+                    for (int i = 0; i < rx_msg.data_length_code; i++) {
+                        data |= (rx_msg.data[i] << (i * 8));
+                    }
+                    potencia2 = data;
+                    ESP_LOGI(EXAMPLE_TAG, "Received data2 value %"PRIu32, data);
                 }
             }
             xSemaphoreGive(ctrl_task_sem);
