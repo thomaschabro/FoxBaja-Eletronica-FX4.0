@@ -48,6 +48,9 @@
 #define ID_SLAVE_STOP_RESP      0x0B0
 #define ID_SLAVE_DATA           0x0B1
 #define ID_SLAVE_PING_RESP      0x0B2
+#define ID_SLAVE2_STOP_RESP     0x0C0
+#define ID_SLAVE2_DATA          0x0C1
+#define ID_SLAVE2_PING_RESP     0x0C2
 
 // Para o Display LCD
 #define I2C_MASTER_SCL_IO           GPIO_NUM_22    /*!< gpio number for I2C master clock */
@@ -110,7 +113,8 @@ static TimerHandle_t xTimers;
 
 int interval = 500; 
 int TimerId = 1;
-int potencia = 0;
+int potencia1 = 0;
+int potencia2 = 0;
 
 /* ------------------------------ Funções LCD ----------------------------- */
 static esp_err_t i2c_master_init(void)
@@ -135,7 +139,7 @@ static esp_err_t i2c_master_init(void)
 
 void vtimer_callback( TimerHandle_t pxTimer ) {
 
-    xQueueSendFromISR(display_task_queue, &potencia, NULL);   
+    xQueueSendFromISR(display_task_queue, &potencia1, NULL);   
 
 }
 
@@ -168,11 +172,15 @@ static void display_update_task(void *arg) {
     for (;;) {
         
         // Verifica se chegou algo na queue
-        int potencia_rec;
-        if (xQueueReceive(display_task_queue, &potencia_rec, portMAX_DELAY) == pdTRUE) {
+        int rec;
+        if (xQueueReceive(display_task_queue, &rec, portMAX_DELAY) == pdTRUE) {
 
-            sprintf((char *)data, "Potencia: %d", potencia_rec);
+            sprintf((char *)data, "Potencia1: %d", potencia1);
             lcd_put_cur(1, 0);
+            lcd_send_string((char *)data);
+
+            sprintf((char *)data, "Potencia2: %d", potencia2);
+            lcd_put_cur(2, 0);
             lcd_send_string((char *)data);
 
         }
@@ -182,6 +190,8 @@ static void display_update_task(void *arg) {
 
 static void twai_receive_task(void *arg)
 {
+    int contador_ping = 0;
+
     while (1) {
         rx_task_action_t action;
         xQueueReceive(rx_task_queue, &action, portMAX_DELAY);
@@ -192,10 +202,19 @@ static void twai_receive_task(void *arg)
                 twai_message_t rx_msg;
                 twai_receive(&rx_msg, portMAX_DELAY);
                 if (rx_msg.identifier == ID_SLAVE_PING_RESP) {
+                    contador_ping++;
+                }
+                else if (rx_msg.identifier == ID_SLAVE2_PING_RESP) {
+                    contador_ping++;
+                }
+                if (contador_ping >= 2) {
+                    ESP_LOGI(EXAMPLE_TAG, "Deu dois pings");
                     xSemaphoreGive(stop_ping_sem);
                     xSemaphoreGive(ctrl_task_sem);
                     break;
                 }
+                // Printa o valor do contador_ping
+                ESP_LOGI(EXAMPLE_TAG, "CONTADOR DE PING: %d", contador_ping);
             }
         } else if (action == RX_RECEIVE_DATA) {
             //Receive data messages from slave
@@ -207,7 +226,14 @@ static void twai_receive_task(void *arg)
                     for (int i = 0; i < rx_msg.data_length_code; i++) {
                         data |= (rx_msg.data[i] << (i * 8));
                     }
-                    potencia = data;
+                    potencia1 = data;
+                    ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
+                } else if (rx_msg.identifier == ID_SLAVE2_DATA) {
+                    uint32_t data = 0;
+                    for (int i = 0; i < rx_msg.data_length_code; i++) {
+                        data |= (rx_msg.data[i] << (i * 8));
+                    }
+                    potencia2 = data;
                     ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
                 }
             }
@@ -217,7 +243,7 @@ static void twai_receive_task(void *arg)
             while (1) {
                 twai_message_t rx_msg;
                 twai_receive(&rx_msg, portMAX_DELAY);
-                if (rx_msg.identifier == ID_SLAVE_STOP_RESP) {
+                if (rx_msg.identifier == ID_SLAVE_STOP_RESP || rx_msg.identifier == ID_SLAVE2_STOP_RESP) {
                     xSemaphoreGive(ctrl_task_sem);
                     break;
                 }
