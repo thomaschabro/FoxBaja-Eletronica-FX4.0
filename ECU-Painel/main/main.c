@@ -167,13 +167,20 @@ esp_err_t set_timer(void) {
 /* --------------------------- Tasks and Functions -------------------------- */
 
 static void display_update_task(void *arg) {
-    uint8_t data[16];
+    uint8_t data[20];
 
     for (;;) {
         
         // Verifica se chegou algo na queue
         int rec;
         if (xQueueReceive(display_task_queue, &rec, portMAX_DELAY) == pdTRUE) {
+
+            // Limpando
+            sprintf((char *)data, "Potencia1: %s", "       ");
+            lcd_put_cur(1, 0);
+            lcd_send_string((char *)data);
+            lcd_put_cur(2, 0);
+            lcd_send_string((char *)data);
 
             sprintf((char *)data, "Potencia1: %d", potencia1);
             lcd_put_cur(1, 0);
