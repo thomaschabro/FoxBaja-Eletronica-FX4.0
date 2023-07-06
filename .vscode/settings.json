@@ -1,6 +1,8 @@
 {
   "files.associations": {
     "adc_continuous.h": "c",
-    "cstdint": "cpp"
+    "cstdint": "cpp",
+    "led_strip.h": "c",
+    "queue.h": "c"
   }
 }

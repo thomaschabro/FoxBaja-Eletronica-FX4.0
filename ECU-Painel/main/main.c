@@ -29,6 +29,7 @@
 #include "sdkconfig.h"
 #include "unistd.h"
 #include "i2c-lcd.h"
+#include "driver/uart.h"
 
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
