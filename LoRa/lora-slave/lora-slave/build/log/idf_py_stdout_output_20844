@@ -1,0 +1,29 @@
+[1/9] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D C:\Espressif\frameworks\esp-idf-v5.0.2\BAJA\FoxBaja-Eletronica-FX4.0\LoRa\lora-slave\lora-slave\build\bootloader\esp-idf\esptool_py && C:\Espressif\python_env\idf5.0_py3.11_env\Scripts\python.exe C:/Espressif/frameworks/esp-idf-v5.0.2/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/bootloader/bootloader.bin"
+Bootloader binary size 0x6710 bytes. 0x8f0 bytes (8%) free.
+[2/7] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c: In function 'uart_task':
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:86:29: warning: variable 'b_value' set but not used [-Wunused-but-set-variable]
+   86 |                     uint8_t b_value;
+      |                             ^~~~~~~
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:85:29: warning: variable 'g_value' set but not used [-Wunused-but-set-variable]
+   85 |                     uint8_t g_value;
+      |                             ^~~~~~~
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:84:29: warning: variable 'r_value' set but not used [-Wunused-but-set-variable]
+   84 |                     uint8_t r_value;
+      |                             ^~~~~~~
+At top level:
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:155:13: warning: 'lora_send' defined but not used [-Wunused-function]
+  155 | static void lora_send(int address, const char *data)
+      |             ^~~~~~~~~
+[3/7] Linking C static library esp-idf\main\libmain.a
+[4/7] Generating ld/sections.ld
+[5/7] Linking CXX executable lora-slave.elf
+[6/7] Generating binary image from built executable
+esptool.py v4.5.1
+Creating esp32 image...
+Merged 2 ELF sections
+Successfully created esp32 image.
+Generated C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/lora-slave.bin
+[7/7] cmd.exe /C "cd /D C:\Espressif\frameworks\esp-idf-v5.0.2\BAJA\FoxBaja-Eletronica-FX4.0\LoRa\lora-slave\lora-slave\build\esp-idf\esptool_py && C:\Espressif\python_env\idf5.0_py3.11_env\Scripts\python.exe C:/Espressif/frameworks/esp-idf-v5.0.2/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/partition_table/partition-table.bin C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/lora-slave.bin"
+lora-slave.bin binary size 0x31e90 bytes. Smallest app partition is 0x100000 bytes. 0xce170 bytes (81%) free.

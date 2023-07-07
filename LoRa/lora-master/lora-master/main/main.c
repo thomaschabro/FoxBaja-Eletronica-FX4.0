@@ -8,7 +8,7 @@
 #include "freertos/queue.h"
 
 #define LORA_SLAVE 2
-#define UART_NUM UART_NUM_1
+#define UART_NUM UART_NUM_0
 #define BUF_SIZE 1024
 #define TASK_MEMORY 1024 * 2
 #define RGB_LED 8
@@ -17,7 +17,7 @@ static const char *TAG = "LORA MASTER";
 static QueueHandle_t uart_queue;
 
 static void uart_task(void *pvParameters)
-{
+{   
     uart_event_t event;
     uint8_t *data = (uint8_t *)malloc(BUF_SIZE);
 
@@ -46,12 +46,13 @@ static void uart_task(void *pvParameters)
 static void init_uart(void)
 {
     uart_config_t uart_config = {
-        .baud_rate = 9600,
+        .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .rx_flow_ctrl_thresh = 122,
+        .source_clk = UART_SCLK_DEFAULT,
     };
     uart_param_config(UART_NUM, &uart_config);
 
@@ -113,7 +114,7 @@ static void lora_send(int address, const char *data)
 void app_main(void)
 {
     init_uart();
-    init_lora_896();
+    init_lora_896();    
 
     uint8_t count = 0;
     while (true)

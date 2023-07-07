@@ -1,0 +1,46 @@
+[1/9] Performing build step for 'bootloader'
+[1/1] cmd.exe /C "cd /D C:\Espressif\frameworks\esp-idf-v5.0.2\BAJA\FoxBaja-Eletronica-FX4.0\LoRa\lora-slave\lora-slave\build\bootloader\esp-idf\esptool_py && C:\Espressif\python_env\idf5.0_py3.11_env\Scripts\python.exe C:/Espressif/frameworks/esp-idf-v5.0.2/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x1000 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/bootloader/bootloader.bin"
+Bootloader binary size 0x6710 bytes. 0x8f0 bytes (8%) free.
+[2/7] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/main.c.obj
+In file included from C:/Espressif/frameworks/esp-idf-v5.0.2/components/freertos/FreeRTOS-Kernel/include/freertos/portable.h:58,
+                 from C:/Espressif/frameworks/esp-idf-v5.0.2/components/freertos/FreeRTOS-Kernel/include/freertos/FreeRTOS.h:70,
+                 from C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:3:
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c: In function 'uart_task':
+C:/Espressif/frameworks/esp-idf-v5.0.2/components/freertos/FreeRTOS-Kernel/portable/xtensa/include/freertos/portmacro.h:125:23: warning: passing argument 3 of 'xQueueReceiveFromISR' makes pointer from integer without a cast [-Wint-conversion]
+  125 | #define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+      |                       ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                       |
+      |                       long unsigned int
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:38:62: note: in expansion of macro 'portMAX_DELAY'
+   38 |         if (xQueueReceiveFromISR(uart_queue, (void *)&event, portMAX_DELAY))
+      |                                                              ^~~~~~~~~~~~~
+In file included from C:/Espressif/frameworks/esp-idf-v5.0.2/components/freertos/FreeRTOS-Kernel/include/freertos/semphr.h:41,
+                 from C:/Espressif/frameworks/esp-idf-v5.0.2/components/driver/include/driver/uart.h:17,
+                 from C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:7:
+C:/Espressif/frameworks/esp-idf-v5.0.2/components/freertos/FreeRTOS-Kernel/include/freertos/queue.h:1501:53: note: expected 'BaseType_t * const' {aka 'int * const'} but argument is of type 'long unsigned int'
+ 1501 |                                  BaseType_t * const pxHigherPriorityTaskWoken ) PRIVILEGED_FUNCTION;
+      |                                  ~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:83:29: warning: variable 'b_value' set but not used [-Wunused-but-set-variable]
+   83 |                     uint8_t b_value;
+      |                             ^~~~~~~
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:82:29: warning: variable 'g_value' set but not used [-Wunused-but-set-variable]
+   82 |                     uint8_t g_value;
+      |                             ^~~~~~~
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:81:29: warning: variable 'r_value' set but not used [-Wunused-but-set-variable]
+   81 |                     uint8_t r_value;
+      |                             ^~~~~~~
+At top level:
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/main/main.c:153:13: warning: 'lora_send' defined but not used [-Wunused-function]
+  153 | static void lora_send(int address, const char *data)
+      |             ^~~~~~~~~
+[3/7] Linking C static library esp-idf\main\libmain.a
+[4/7] Generating ld/sections.ld
+[5/7] Linking CXX executable lora-slave.elf
+[6/7] Generating binary image from built executable
+esptool.py v4.5.1
+Creating esp32 image...
+Merged 2 ELF sections
+Successfully created esp32 image.
+Generated C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/lora-slave.bin
+[7/7] cmd.exe /C "cd /D C:\Espressif\frameworks\esp-idf-v5.0.2\BAJA\FoxBaja-Eletronica-FX4.0\LoRa\lora-slave\lora-slave\build\esp-idf\esptool_py && C:\Espressif\python_env\idf5.0_py3.11_env\Scripts\python.exe C:/Espressif/frameworks/esp-idf-v5.0.2/components/partition_table/check_sizes.py --offset 0x8000 partition --type app C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/partition_table/partition-table.bin C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/LoRa/lora-slave/lora-slave/build/lora-slave.bin"
+lora-slave.bin binary size 0x31c50 bytes. Smallest app partition is 0x100000 bytes. 0xce3b0 bytes (81%) free.
