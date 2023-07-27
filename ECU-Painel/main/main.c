@@ -116,6 +116,7 @@ int interval = 500;
 int TimerId = 1;
 int potencia1 = 0;
 int potencia2 = 0;
+int potencia3 = 0;
 
 /* ------------------------------ Funções LCD ----------------------------- */
 static esp_err_t i2c_master_init(void)
@@ -182,6 +183,8 @@ static void display_update_task(void *arg) {
             lcd_send_string((char *)data);
             lcd_put_cur(2, 0);
             lcd_send_string((char *)data);
+            lcd_put_cur(3, 0);
+            lcd_send_string((char *)data);
 
             sprintf((char *)data, "Potencia1: %d", potencia1);
             lcd_put_cur(1, 0);
@@ -190,6 +193,10 @@ static void display_update_task(void *arg) {
             sprintf((char *)data, "Potencia2: %d", potencia2);
             lcd_put_cur(2, 0);
             lcd_send_string((char *)data);
+
+            sprintf((char *)data, "Potencia3: %d", potencia3);
+            lcd_put_cur(3, 0);
+            lcd_send_string((char *)data); 
 
         }
     
@@ -230,18 +237,33 @@ static void twai_receive_task(void *arg)
                 twai_message_t rx_msg;
                 twai_receive(&rx_msg, portMAX_DELAY);
                 if (rx_msg.identifier == ID_SLAVE_DATA) {
-                    uint32_t data = 0;
-                    for (int i = 0; i < rx_msg.data_length_code; i++) {
-                        data |= (rx_msg.data[i] << (i * 8));
+
+                    // Print size of data
+                    ESP_LOGI(EXAMPLE_TAG, "Received data length %d", rx_msg.data_length_code);
+
+                    uint32_t data1 = 0;
+                    for (int i = 0; i < 4; i++) {
+                        data1 |= (rx_msg.data[i] << (i * 8));
                     }
-                    potencia1 = data;
-                    ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
+                    potencia1 = (int) data1;
+                    ESP_LOGI(EXAMPLE_TAG, "Received data1 value %d", potencia1);
+
+                    // Ler segunda parte do dado
+                    uint32_t data2 = 0;
+                    for (int i = 4; i < rx_msg.data_length_code; i++) {
+                        data2 |= (rx_msg.data[i] << ((i-4) * 8));
+                    }
+                    potencia2 = (int) data2;
+                    ESP_LOGI(EXAMPLE_TAG, "Received data2 value %d", potencia2);
+                    ESP_LOGI(EXAMPLE_TAG, " = ");
+
+                // ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
                 } else if (rx_msg.identifier == ID_SLAVE2_DATA) {
                     uint32_t data = 0;
                     for (int i = 0; i < rx_msg.data_length_code; i++) {
                         data |= (rx_msg.data[i] << (i * 8));
                     }
-                    potencia2 = data;
+                    potencia3 = data;
                     ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
                 }
             }

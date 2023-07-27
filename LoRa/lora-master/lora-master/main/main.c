@@ -6,6 +6,7 @@
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "freertos/queue.h"
+#include "esp32-lora.h"
 
 #define LORA_SLAVE 2
 #define UART_NUM UART_NUM_0

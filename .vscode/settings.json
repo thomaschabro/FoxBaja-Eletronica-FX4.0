@@ -4,6 +4,7 @@
     "cstdint": "cpp",
     "led_strip.h": "c",
     "queue.h": "c",
-    "uart.h": "c"
+    "uart.h": "c",
+    "twai.h": "c"
   }
 }

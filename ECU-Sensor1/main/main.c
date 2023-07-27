@@ -40,6 +40,7 @@
 #define EXAMPLE_TAG                     "TWAI Slave"
 
 #define ADC_PIN                         34
+#define ADC_PIN2                        35
 
 #define ID_MASTER_STOP_CMD              0x0A0
 #define ID_MASTER_START_CMD             0x0A1
@@ -75,8 +76,8 @@ static const twai_message_t ping_resp = {.identifier = ID_SLAVE_PING_RESP, .data
 static const twai_message_t stop_resp = {.identifier = ID_SLAVE_STOP_RESP, .data_length_code = 0,
                                         .data = {0, 0 , 0 , 0 ,0 ,0 ,0 ,0}};
 //Data bytes of data message will be initialized in the transmit task
-static twai_message_t data_message = {.identifier = ID_SLAVE_DATA, .data_length_code = 4,
-                                     .data = {0, 0 , 0 , 0 ,0 ,0 ,0 ,0}};
+static twai_message_t data_message = {.identifier = ID_SLAVE_DATA, .data_length_code = 8, 
+                                        .data = {0, 0 , 0 , 0 ,0 ,0 ,0 ,0}};
 
 
 static QueueHandle_t tx_task_queue;
@@ -85,7 +86,8 @@ static SemaphoreHandle_t ctrl_task_sem;
 static SemaphoreHandle_t stop_data_sem;
 static SemaphoreHandle_t done_sem;
 
-uint32_t potencia;
+uint32_t potencia1;
+uint32_t potencia2;
 
 /* --------------------------- Tasks and Functions -------------------------- */
 
@@ -149,13 +151,23 @@ static void twai_transmit_task(void *arg)
             while (1) {
                 //FreeRTOS tick count used to simulate sensor data -> DEVEMOS MUDAR ESSA PARTE PARA PEGAR DADOS DO SENSOR
                 // uint32_t sensor_data = xTaskGetTickCount();
-                potencia = adc1_get_raw(ADC1_CHANNEL_6);
+                potencia1 = adc1_get_raw(ADC1_CHANNEL_6);
+                potencia2 = adc1_get_raw(ADC1_CHANNEL_7);
 
+                ESP_LOGI(EXAMPLE_TAG, " === ");
+
+                // Criando a "data" da mensagem com os valores de potencia1 e potencia2
                 for (int i = 0; i < 4; i++) {
-                    data_message.data[i] = (potencia >> (i * 8)) & 0xFF;
+                    data_message.data[i] = (potencia1 >> (i * 8)) & 0xFF;
                 }
+                for (int i = 4; i < 8; i++) {
+                    data_message.data[i] = (potencia2 >> ((i - 4) * 8)) & 0xFF;
+                }
+
                 twai_transmit(&data_message, portMAX_DELAY);
-                ESP_LOGI(EXAMPLE_TAG, "Transmitted data value %"PRIu32, potencia);
+                ESP_LOGI(EXAMPLE_TAG, "Transmitted data1 value %"PRIu32, potencia1);
+                ESP_LOGI(EXAMPLE_TAG, "Transmitted data2 value %"PRIu32, potencia2);
+                ESP_LOGI(EXAMPLE_TAG, " = ");
                 vTaskDelay(pdMS_TO_TICKS(DATA_PERIOD_MS));
                 if (xSemaphoreTake(stop_data_sem, 0) == pdTRUE) {
                     break;
