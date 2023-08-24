@@ -63,9 +63,9 @@
 #define I2C_MASTER_TIMEOUT_MS       1000           /*!< I2C timeout ms */
 #define SLAVE_ADDRESS_LCD           0x27          /*!< ESP32 slave address for LCD */
 
-// Para o Timer
-#define TIMER_DIVIDER             16  // Hardware timer clock divider
-#define TIMER_SCALE               (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
+    // Para o Timer
+    #define TIMER_DIVIDER             16  // Hardware timer clock divider
+    #define TIMER_SCALE               (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
 
 static const char *TAG = "ECU-Painel";
 
@@ -115,7 +115,7 @@ static TimerHandle_t xTimers;
 int interval = 500; 
 int TimerId = 1;
 int potencia1 = 0;
-int potencia2 = 0;
+int velocidade = 0;
 int potencia3 = 0;
 
 /* ------------------------------ Funções LCD ----------------------------- */
@@ -190,7 +190,7 @@ static void display_update_task(void *arg) {
             lcd_put_cur(1, 0);
             lcd_send_string((char *)data);
 
-            sprintf((char *)data, "Potencia2: %d", potencia2);
+            sprintf((char *)data, "Velocidade: %d", velocidade);
             lcd_put_cur(2, 0);
             lcd_send_string((char *)data);
 
@@ -222,7 +222,7 @@ static void twai_receive_task(void *arg)
                 else if (rx_msg.identifier == ID_SLAVE2_PING_RESP) {
                     contador_ping++;
                 }
-                if (contador_ping >= 2) {
+                if (contador_ping >= 1) {
                     ESP_LOGI(EXAMPLE_TAG, "Deu dois pings");
                     xSemaphoreGive(stop_ping_sem);
                     xSemaphoreGive(ctrl_task_sem);
@@ -238,9 +238,6 @@ static void twai_receive_task(void *arg)
                 twai_receive(&rx_msg, portMAX_DELAY);
                 if (rx_msg.identifier == ID_SLAVE_DATA) {
 
-                    // Print size of data
-                    ESP_LOGI(EXAMPLE_TAG, "Received data length %d", rx_msg.data_length_code);
-
                     uint32_t data1 = 0;
                     for (int i = 0; i < 4; i++) {
                         data1 |= (rx_msg.data[i] << (i * 8));
@@ -253,8 +250,8 @@ static void twai_receive_task(void *arg)
                     for (int i = 4; i < rx_msg.data_length_code; i++) {
                         data2 |= (rx_msg.data[i] << ((i-4) * 8));
                     }
-                    potencia2 = (int) data2;
-                    ESP_LOGI(EXAMPLE_TAG, "Received data2 value %d", potencia2);
+                    velocidade = (int) data2;
+                    ESP_LOGI(EXAMPLE_TAG, "Received velo value %d", velocidade);
                     ESP_LOGI(EXAMPLE_TAG, " = ");
 
                 // ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);

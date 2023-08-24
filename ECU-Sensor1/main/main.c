@@ -23,10 +23,12 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
+#include "freertos/timers.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #include "driver/twai.h"
 #include "driver/adc.h"
+#include "driver/gpio.h"
 
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
@@ -40,7 +42,6 @@
 #define EXAMPLE_TAG                     "TWAI Slave"
 
 #define ADC_PIN                         34
-#define ADC_PIN2                        35
 
 #define ID_MASTER_STOP_CMD              0x0A0
 #define ID_MASTER_START_CMD             0x0A1
@@ -51,6 +52,12 @@
 #define ID_SLAVE2_STOP_RESP             0x0C0
 #define ID_SLAVE2_DATA                  0x0C1
 #define ID_SLAVE2_PING_RESP             0x0C2
+
+// Para o Timer
+#define TIMER_DIVIDER             16  // Hardware timer clock divider
+#define TIMER_SCALE               (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
+
+#define VEL_PIN                         GPIO_NUM_27
 
 typedef enum {
     TX_SEND_PING_RESP,
@@ -82,14 +89,69 @@ static twai_message_t data_message = {.identifier = ID_SLAVE_DATA, .data_length_
 
 static QueueHandle_t tx_task_queue;
 static QueueHandle_t rx_task_queue;
+static QueueHandle_t vel_task_queue;
+
 static SemaphoreHandle_t ctrl_task_sem;
 static SemaphoreHandle_t stop_data_sem;
 static SemaphoreHandle_t done_sem;
 
+static TimerHandle_t xTimers;
+
 uint32_t potencia1;
-uint32_t potencia2;
+uint32_t velocidade;
+
+int interval = 100;  // ms 
+int TimerId = 1;
+int raio = 45 * 1e-3; // 45mm
+/* ------------------------------ Funções Timer ----------------------------- */
+void vtimer_callback( TimerHandle_t pxTimer ) {
+
+    xQueueSendFromISR(vel_task_queue, &potencia1, NULL);   
+
+}
+
+esp_err_t set_timer(void) {
+
+    xTimers = xTimerCreate("timer", pdMS_TO_TICKS(interval), pdTRUE, (void *)TimerId, vtimer_callback);
+    
+    if (xTimers == NULL) {
+        
+
+    } else {
+        
+        if (xTimerStart(xTimers, 0) != pdPASS) {
+        }
+    
+    }
+    return ESP_OK;
+}
+
 
 /* --------------------------- Tasks and Functions -------------------------- */
+
+static void read_rotation(void *arg) {
+
+    gpio_set_direction(VEL_PIN, GPIO_MODE_INPUT);
+
+    uint32_t n = 0;
+
+    while (1) {
+
+        n += gpio_get_level(VEL_PIN);
+        velocidade = n;
+
+        int x;
+        if (xQueueReceive(vel_task_queue, &x, portMAX_DELAY) == pdTRUE) {
+
+            velocidade = n;
+            // velocidade = n;
+
+        }
+    
+    }
+
+}
+
 
 static void twai_receive_task(void *arg)
 {
@@ -152,21 +214,18 @@ static void twai_transmit_task(void *arg)
                 //FreeRTOS tick count used to simulate sensor data -> DEVEMOS MUDAR ESSA PARTE PARA PEGAR DADOS DO SENSOR
                 // uint32_t sensor_data = xTaskGetTickCount();
                 potencia1 = adc1_get_raw(ADC1_CHANNEL_6);
-                potencia2 = adc1_get_raw(ADC1_CHANNEL_7);
-
-                ESP_LOGI(EXAMPLE_TAG, " === ");
 
                 // Criando a "data" da mensagem com os valores de potencia1 e potencia2
                 for (int i = 0; i < 4; i++) {
                     data_message.data[i] = (potencia1 >> (i * 8)) & 0xFF;
                 }
                 for (int i = 4; i < 8; i++) {
-                    data_message.data[i] = (potencia2 >> ((i - 4) * 8)) & 0xFF;
+                    data_message.data[i] = (velocidade >> ((i - 4) * 8)) & 0xFF;
                 }
 
                 twai_transmit(&data_message, portMAX_DELAY);
                 ESP_LOGI(EXAMPLE_TAG, "Transmitted data1 value %"PRIu32, potencia1);
-                ESP_LOGI(EXAMPLE_TAG, "Transmitted data2 value %"PRIu32, potencia2);
+                ESP_LOGI(EXAMPLE_TAG, "Transmitted velo value %"PRIu32, velocidade);
                 ESP_LOGI(EXAMPLE_TAG, " = ");
                 vTaskDelay(pdMS_TO_TICKS(DATA_PERIOD_MS));
                 if (xSemaphoreTake(stop_data_sem, 0) == pdTRUE) {
@@ -259,16 +318,19 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
+    set_timer();    
 
     //Create semaphores and tasks
     tx_task_queue = xQueueCreate(1, sizeof(tx_task_action_t));
     rx_task_queue = xQueueCreate(1, sizeof(rx_task_action_t));
+    vel_task_queue = xQueueCreate(1, sizeof(int));
     ctrl_task_sem = xSemaphoreCreateBinary();
     stop_data_sem  = xSemaphoreCreateBinary();
     done_sem  = xSemaphoreCreateBinary();
     xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore(read_rotation, "read_rotation", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
 
     //Install TWAI driver, trigger tasks to start
     ESP_ERROR_CHECK(twai_driver_install(&g_config, &t_config, &f_config));

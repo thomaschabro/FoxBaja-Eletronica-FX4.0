@@ -5,6 +5,10 @@
     "led_strip.h": "c",
     "queue.h": "c",
     "uart.h": "c",
-    "twai.h": "c"
+    "twai.h": "c",
+    "i2c.h": "c",
+    "freertos.h": "c",
+    "gpio.h": "c",
+    "lora.h": "c"
   }
 }
