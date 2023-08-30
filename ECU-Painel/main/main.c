@@ -31,6 +31,8 @@
 #include "i2c-lcd.h"
 #include "driver/uart.h"
 
+
+
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
 #define PING_PERIOD_MS          250
@@ -222,7 +224,7 @@ static void twai_receive_task(void *arg)
                 else if (rx_msg.identifier == ID_SLAVE2_PING_RESP) {
                     contador_ping++;
                 }
-                if (contador_ping >= 1) {
+                if (contador_ping >= 2) {
                     ESP_LOGI(EXAMPLE_TAG, "Deu dois pings");
                     xSemaphoreGive(stop_ping_sem);
                     xSemaphoreGive(ctrl_task_sem);
