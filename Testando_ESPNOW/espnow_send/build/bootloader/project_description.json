@@ -8,13 +8,13 @@
     "app_elf":            "bootloader.elf",
     "app_bin":            "bootloader.bin",
     "git_revision":       "v5.0.2-dirty",
-    "target":             "esp32s3",
-    "rev":                "",
+    "target":             "esp32",
+    "rev":                "0",
     "min_rev":            "0",
-    "max_rev":            "99",
+    "max_rev":            "399",
     "phy_data_partition": "",
     "monitor_baud" :      "115200",
-    "monitor_toolprefix": "xtensa-esp32s3-elf-",
+    "monitor_toolprefix": "xtensa-esp32-elf-",
     "config_environment" : {
         "COMPONENT_KCONFIGS" : "C:/Espressif/frameworks/esp-idf-v5.0.2/components/efuse/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/esp_common/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/esp_hw_support/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/esp_system/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/freertos/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/hal/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/log/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/newlib/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/soc/Kconfig;C:/Espressif/frameworks/esp-idf-v5.0.2/components/spi_flash/Kconfig",
         "COMPONENT_KCONFIGS_PROJBUILD" : "C:/Espressif/frameworks/esp-idf-v5.0.2/components/bootloader/Kconfig.projbuild;C:/Espressif/frameworks/esp-idf-v5.0.2/components/esp_app_format/Kconfig.projbuild;C:/Espressif/frameworks/esp-idf-v5.0.2/components/esp_rom/Kconfig.projbuild;C:/Espressif/frameworks/esp-idf-v5.0.2/components/esptool_py/Kconfig.projbuild;C:/Espressif/frameworks/esp-idf-v5.0.2/components/partition_table/Kconfig.projbuild"

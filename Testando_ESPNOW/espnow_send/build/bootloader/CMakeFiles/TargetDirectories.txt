@@ -10,9 +10,6 @@ C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ES
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/size.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/size-files.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/size-components.dir
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/dfu.dir
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/dfu-list.dir
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/dfu-flash.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/uf2-app.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/uf2.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/CMakeFiles/edit_cache.dir
@@ -27,8 +24,8 @@ C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ES
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/soc/CMakeFiles/__idf_soc.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/soc/CMakeFiles/edit_cache.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/soc/CMakeFiles/rebuild_cache.dir
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/soc/esp32s3/CMakeFiles/edit_cache.dir
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/soc/esp32s3/CMakeFiles/rebuild_cache.dir
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/soc/esp32/CMakeFiles/edit_cache.dir
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/soc/esp32/CMakeFiles/rebuild_cache.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/micro-ecc/CMakeFiles/__idf_micro-ecc.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/micro-ecc/CMakeFiles/edit_cache.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/micro-ecc/CMakeFiles/rebuild_cache.dir
@@ -59,8 +56,8 @@ C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ES
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_hw_support/CMakeFiles/__idf_esp_hw_support.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_hw_support/CMakeFiles/edit_cache.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_hw_support/CMakeFiles/rebuild_cache.dir
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_hw_support/port/esp32s3/CMakeFiles/edit_cache.dir
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_hw_support/port/esp32s3/CMakeFiles/rebuild_cache.dir
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_hw_support/port/esp32/CMakeFiles/edit_cache.dir
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_hw_support/port/esp32/CMakeFiles/rebuild_cache.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_common/CMakeFiles/__idf_esp_common.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_common/CMakeFiles/edit_cache.dir
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/Testando_ESPNOW/espnow_send/build/bootloader/esp-idf/esp_common/CMakeFiles/rebuild_cache.dir

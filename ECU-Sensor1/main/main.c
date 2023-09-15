@@ -138,15 +138,13 @@ static void read_rotation(void *arg) {
     while (1) {
 
         n += gpio_get_level(VEL_PIN);
-        velocidade = n;
-
         int x;
-        if (xQueueReceive(vel_task_queue, &x, portMAX_DELAY) == pdTRUE) {
+        // if (xQueueReceive(vel_task_queue, &x, portMAX_DELAY) == pdTRUE) {
 
-            velocidade = n;
-            // velocidade = n;
+            
 
-        }
+        // }
+        ESP_LOGI(EXAMPLE_TAG, "n = %d", n);
     
     }
 
