@@ -129,26 +129,26 @@ esp_err_t set_timer(void) {
 
 /* --------------------------- Tasks and Functions -------------------------- */
 
-static void read_rotation(void *arg) {
+// static void read_rotation(void *arg) {
 
-    gpio_set_direction(VEL_PIN, GPIO_MODE_INPUT);
+//     // gpio_set_direction(VEL_PIN, GPIO_MODE_INPUT);
 
-    uint32_t n = 0;
+//     // uint32_t n = 0;
 
-    while (1) {
+//     // while (1) {
 
-        n += gpio_get_level(VEL_PIN);
-        int x;
-        // if (xQueueReceive(vel_task_queue, &x, portMAX_DELAY) == pdTRUE) {
+//     //     n += gpio_get_level(VEL_PIN);
+//     //     int x;
+//     //     // if (xQueueReceive(vel_task_queue, &x, portMAX_DELAY) == pdTRUE) {
 
             
 
-        // }
-        ESP_LOGI(EXAMPLE_TAG, "n = %d", n);
+//     //     // }
+//     //     ESP_LOGI(EXAMPLE_TAG, "n = %d", n);
     
-    }
+//     // }
 
-}
+// }
 
 
 static void twai_receive_task(void *arg)
@@ -328,7 +328,7 @@ void app_main(void)
     xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, tskNO_AFFINITY);
     xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore(read_rotation, "read_rotation", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
+    // xTaskCreatePinnedToCore(read_rotation, "read_rotation", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
 
     //Install TWAI driver, trigger tasks to start
     ESP_ERROR_CHECK(twai_driver_install(&g_config, &t_config, &f_config));

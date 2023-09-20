@@ -224,7 +224,7 @@ static void twai_receive_task(void *arg)
                 else if (rx_msg.identifier == ID_SLAVE2_PING_RESP) {
                     contador_ping++;
                 }
-                if (contador_ping >= 2) {
+                if (contador_ping >= 1) {
                     ESP_LOGI(EXAMPLE_TAG, "Deu dois pings");
                     xSemaphoreGive(stop_ping_sem);
                     xSemaphoreGive(ctrl_task_sem);

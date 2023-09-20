@@ -26,26 +26,24 @@ SX1262 radio = new Module(LoRa_nss, LoRa_dio1, LoRa_nrst, LoRa_busy);
 const byte rxPin = 47;
 const byte txPin = 48;
 
-String str;
+SoftwareSerial mySerial(47, 48);
 
-void setup()
-{
+String texto;
+
+void setup() {
   // Emulando a serial
-  mySerial.begin(9600);
-  SoftwareSerial mySerial(rxPin, txPin); // RX, TX
+  mySerial.begin(115200);
+  SoftwareSerial mySerial(rxPin, txPin);  // RX, TX
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   SPI.begin(LoRa_SCK, LoRa_MISO, LoRa_MOSI, LoRa_nss);
 
   // initialize SX1262 with default settings
   Serial.print(F("[SX1262] Initializing ... "));
   int state = radio.begin();
-  if (state == RADIOLIB_ERR_NONE)
-  {
+  if (state == RADIOLIB_ERR_NONE) {
     Serial.println(F("success!"));
-  }
-  else
-  {
+  } else {
     Serial.print(F("failed, code "));
     Serial.println(state);
     while (true)
@@ -53,21 +51,24 @@ void setup()
   }
 }
 
-void loop()
-{
-  if (mySerial.available() > 0)
-  {
+void loop() {
+  if (mySerial.available() > 0) {
+    Serial.println("Received UART packet");
     // Armazenar em uma variável o que foi recebido
-    str = mySerial.readString();
-    Serial.println(str);
+    while (mySerial.available()) {
+      char c = mySerial.read();
+      texto += c;
+    }
+    Serial.println(texto);
+  } else {
+    Serial.println("Nothing available");
   }
 
   Serial.print(F("[SX1262] Transmitting packet ... "));
 
   int state = radio.transmit("Hello World!");
 
-  if (state == RADIOLIB_ERR_NONE)
-  {
+  if (state == RADIOLIB_ERR_NONE) {
     // the packet was successfully transmitted
     Serial.println(F("success!"));
 
@@ -75,19 +76,13 @@ void loop()
     Serial.print(F("[SX1262] Datarate:\t"));
     Serial.print(radio.getDataRate());
     Serial.println(F(" bps"));
-  }
-  else if (state == RADIOLIB_ERR_PACKET_TOO_LONG)
-  {
+  } else if (state == RADIOLIB_ERR_PACKET_TOO_LONG) {
     // the supplied packet was longer than 256 bytes
     Serial.println(F("too long!"));
-  }
-  else if (state == RADIOLIB_ERR_TX_TIMEOUT)
-  {
+  } else if (state == RADIOLIB_ERR_TX_TIMEOUT) {
     // timeout occured while transmitting packet
     Serial.println(F("timeout!"));
-  }
-  else
-  {
+  } else {
     // some other error occurred
     Serial.print(F("failed, code "));
     Serial.println(state);
