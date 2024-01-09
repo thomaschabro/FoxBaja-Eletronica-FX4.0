@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\__main__.py", line 9, in <module>
+    esptool._main()
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\__init__.py", line 1032, in _main
+    main()
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\__init__.py", line 808, in main
+    flash_xmc_startup()
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\__init__.py", line 772, in flash_xmc_startup
+    mf_id = esp.read_spiflash_sfdp(sfdp_mfid_addr, 8)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 1334, in read_spiflash_sfdp
+    return self.run_spiflash_command(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 1302, in run_spiflash_command
+    self.write_reg(
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 723, in write_reg
+    return self.check_command("write target memory", self.ESP_WRITE_REG, command)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 435, in check_command
+    val, data = self.command(op, data, chk, timeout=timeout)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 404, in command
+    p = self.read()
+        ^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 337, in read
+    return next(self._slip_reader)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 1506, in slip_reader
+    read_bytes = port.read(1 if waiting == 0 else waiting)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\serial\serialwin32.py", line 288, in read
+    result_ok = win32.GetOverlappedResult(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "C:\Espressif\frameworks\esp-idf-v5.0.2\components\esptool_py\esptool\esptool.py", line 11, in <module>
+    sys.exit(subprocess.run([sys.executable, '-m', 'esptool'] + sys.argv[1:]).returncode)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "subprocess.py", line 550, in run
+  File "subprocess.py", line 1199, in communicate
+  File "subprocess.py", line 1262, in wait
+  File "subprocess.py", line 1543, in _wait
+KeyboardInterrupt
+^C

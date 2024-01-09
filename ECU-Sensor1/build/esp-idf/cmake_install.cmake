@@ -239,6 +239,16 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor1/build/esp-idf/esp32-owb/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor1/build/esp-idf/ds18b20/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor1/build/esp-idf/http_parser/cmake_install.cmake")
 endif()
 

@@ -9,6 +9,7 @@
     "i2c.h": "c",
     "freertos.h": "c",
     "gpio.h": "c",
-    "lora.h": "c"
+    "lora.h": "c",
+    "timer.h": "c"
   }
 }

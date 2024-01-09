@@ -34,6 +34,8 @@ C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/unity/libunity.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/cmock/libcmock.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/console/libconsole.a
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/esp32-owb/libesp32-owb.a
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/ds18b20/libds18b20.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/http_parser/libhttp_parser.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/esp-tls/libesp-tls.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/esp_adc/libesp_adc.a
@@ -58,5 +60,4 @@ C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/spiffs/libspiffs.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/ulp/libulp.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
-C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/espressif__led_strip/libespressif__led_strip.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/main/libmain.a

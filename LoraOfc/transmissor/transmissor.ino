@@ -23,14 +23,15 @@
 SX1262 radio = new Module(LoRa_nss, LoRa_dio1, LoRa_nrst, LoRa_busy);
 
 // Definindo pinos que serão emulados como RX e TX
-const byte rxPin = 47;
-const byte txPin = 48;
+const int rxPin = 47;
+const int txPin = 48;
 
-SoftwareSerial mySerial(47, 48);
-
-String texto;
+SoftwareSerial mySerial(rxPin, txPin);
 
 void setup() {
+  pinMode(rxPin, INPUT);
+  pinMode(txPin, OUTPUT);
+
   // Emulando a serial
   mySerial.begin(115200);
   SoftwareSerial mySerial(rxPin, txPin);  // RX, TX
@@ -53,39 +54,44 @@ void setup() {
 
 void loop() {
   if (mySerial.available() > 0) {
-    Serial.println("Received UART packet");
+    Serial.println("Chegou pacote");
     // Armazenar em uma variável o que foi recebido
+    char texto[20];
+    texto[0] = 0;
+    int i = 0;
     while (mySerial.available()) {
-      char c = mySerial.read();
-      texto += c;
+      byte c = mySerial.read();
+      texto[i] = c;
+      i++;
+      Serial.print(c);
     }
     Serial.println(texto);
   } else {
     Serial.println("Nothing available");
   }
 
-  Serial.print(F("[SX1262] Transmitting packet ... "));
+  // Serial.print(F("[SX1262] Transmitting packet ... "));
 
   int state = radio.transmit("Hello World!");
 
   if (state == RADIOLIB_ERR_NONE) {
     // the packet was successfully transmitted
-    Serial.println(F("success!"));
+    //Serial.println(F("success!"));
 
     // print measured data rate
-    Serial.print(F("[SX1262] Datarate:\t"));
-    Serial.print(radio.getDataRate());
-    Serial.println(F(" bps"));
+    //Serial.print(F("[SX1262] Datarate:\t"));
+    //Serial.print(radio.getDataRate());
+    //Serial.println(F(" bps"));
   } else if (state == RADIOLIB_ERR_PACKET_TOO_LONG) {
     // the supplied packet was longer than 256 bytes
-    Serial.println(F("too long!"));
+    //Serial.println(F("too long!"));
   } else if (state == RADIOLIB_ERR_TX_TIMEOUT) {
     // timeout occured while transmitting packet
-    Serial.println(F("timeout!"));
+    //Serial.println(F("timeout!"));
   } else {
     // some other error occurred
-    Serial.print(F("failed, code "));
-    Serial.println(state);
+    //Serial.print(F("failed, code "));
+    //Serial.println(state);
   }
 
   // wait for a second before transmitting again

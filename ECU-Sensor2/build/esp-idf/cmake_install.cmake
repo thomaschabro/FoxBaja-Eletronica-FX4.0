@@ -2,7 +2,7 @@
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/ECU-Recebe")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files (x86)/ECU-Sensor2")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -239,6 +239,16 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/esp32-owb/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/ds18b20/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/http_parser/cmake_install.cmake")
 endif()
 
@@ -385,11 +395,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
   include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/wifi_provisioning/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build/esp-idf/espressif__led_strip/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)

@@ -69,7 +69,7 @@ typedef enum {
 } rx_task_action_t;
 
 static const twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(TX_GPIO_NUM, RX_GPIO_NUM, TWAI_MODE_NORMAL);
-static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_25KBITS();
+static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_125KBITS();
 static const twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
 
@@ -161,6 +161,8 @@ static void twai_receive_task(void *arg)
                     }
                     // potencia3 = (int) data;
                     // ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
+                } else {
+                    ESP_LOGI(EXAMPLE_TAG, "Received unexpected message");
                 }
             }
             xSemaphoreGive(ctrl_task_sem);
@@ -172,8 +174,7 @@ static void twai_receive_task(void *arg)
 }
 
 
-char texto[20];
-char* message;
+// char* message;
 static void twai_transmit_task(void *arg)
 {
     ESP_LOGI(EXAMPLE_TAG, "Transmit task started");
@@ -187,16 +188,6 @@ static void twai_transmit_task(void *arg)
             twai_transmit(&ping_resp, portMAX_DELAY);
             ESP_LOGI(EXAMPLE_TAG, "Transmitted ping response");
             xSemaphoreGive(ctrl_task_sem);
-        } else if ( action == TX_SEND_DATA) {
-
-            while (1) {
-                // Alocar dados de potencia1, 3 e velocidade no char texto
-                sprintf(texto, "%d,%d,%d", potencia1, potencia3, velocidade);
-                message = texto;
-                uart_write_bytes(UART_NUM_0, (const char*)message, strlen(message));
-                ESP_LOGI(EXAMPLE_TAG, "Transmitted data message");
-            }
-                
         } else if (action == TX_SEND_STOP_RESP) {
             //Transmit stop response to master
             twai_transmit(&stop_resp, portMAX_DELAY);
@@ -244,9 +235,7 @@ static void twai_control_task(void *arg)
         //Start receiving data messages
         ESP_LOGI(EXAMPLE_TAG, "Sending uart messages");
         rx_action = RX_RECEIVE_DATA;
-        tx_action = TX_SEND_DATA;
         xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
-        xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
         xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
 
         //Send stop response
@@ -281,36 +270,36 @@ static void twai_control_task(void *arg)
 void app_main(void)
 {
 
-    //Add short delay to allow master it to initialize first
-    for (int i = 3; i > 0; i--) {
-        printf("Slave starting in %d\n", i);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+    // //Add short delay to allow master it to initialize first
+    // for (int i = 3; i > 0; i--) {
+    //     printf("Slave starting in %d\n", i);
+    //     vTaskDelay(pdMS_TO_TICKS(1000));
+    // }
 
-    const uart_port_t uart_num = UART_NUM_0;
-    uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .rx_flow_ctrl_thresh = 122,
-        .source_clk = UART_SCLK_DEFAULT,
-    };
-    // Configure UART parameters
-    ESP_ERROR_CHECK(uart_param_config(UART_NUM_0, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_0, GPIO_NUM_1, GPIO_NUM_3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    // const uart_port_t uart_num = UART_NUM_0;
+    // uart_config_t uart_config = {
+    //     .baud_rate = 115200,
+    //     .data_bits = UART_DATA_8_BITS,
+    //     .parity = UART_PARITY_DISABLE,
+    //     .stop_bits = UART_STOP_BITS_1,
+    //     .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    //     .rx_flow_ctrl_thresh = 122,
+    //     .source_clk = UART_SCLK_DEFAULT,
+    // };
+    // // Configure UART parameters
+    // ESP_ERROR_CHECK(uart_param_config(UART_NUM_0, &uart_config));
+    // ESP_ERROR_CHECK(uart_set_pin(UART_NUM_0, GPIO_NUM_1, GPIO_NUM_3, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
 
-    const int uart_buffer_size = (1024 * 2);
-    QueueHandle_t uart_queue;
-    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_0, uart_buffer_size, 
-                                        uart_buffer_size, 10, &uart_queue, 0));
+    // const int uart_buffer_size = (1024 * 2);
+    // QueueHandle_t uart_queue;
+    // ESP_ERROR_CHECK(uart_driver_install(UART_NUM_0, uart_buffer_size, 
+    //                                     uart_buffer_size, 10, &uart_queue, 0));
 
 
     //Create semaphores and tasks
     tx_task_queue = xQueueCreate(1, sizeof(tx_task_action_t));
     rx_task_queue = xQueueCreate(1, sizeof(rx_task_action_t));
-    uart_queue = xQueueCreate(10, sizeof(char));
+    // uart_queue = xQueueCreate(10, sizeof(char));
     ctrl_task_sem = xSemaphoreCreateBinary();
     stop_data_sem  = xSemaphoreCreateBinary();
     done_sem  = xSemaphoreCreateBinary();

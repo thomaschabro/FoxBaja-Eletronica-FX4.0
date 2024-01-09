@@ -41,8 +41,8 @@
 #define RX_TASK_PRIO            8
 #define TX_TASK_PRIO            9
 #define CTRL_TSK_PRIO           10
-#define TX_GPIO_NUM             GPIO_NUM_5
-#define RX_GPIO_NUM             GPIO_NUM_4
+#define TX_GPIO_NUM             GPIO_NUM_4
+#define RX_GPIO_NUM             GPIO_NUM_5
 #define EXAMPLE_TAG             "TWAI Master"
 
 #define ID_MASTER_STOP_CMD      0x0A0
@@ -93,7 +93,7 @@ typedef enum {
     RX_TASK_EXIT,
 } rx_task_action_t;
 
-static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_25KBITS();
+static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_125KBITS();
 static const twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 static const twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(TX_GPIO_NUM, RX_GPIO_NUM, TWAI_MODE_NORMAL);
 
@@ -225,7 +225,7 @@ static void twai_receive_task(void *arg)
                     contador_ping++;
                 }
                 if (contador_ping >= 1) {
-                    ESP_LOGI(EXAMPLE_TAG, "Deu dois pings");
+                    ESP_LOGI(EXAMPLE_TAG, "Recebeu os pings");
                     xSemaphoreGive(stop_ping_sem);
                     xSemaphoreGive(ctrl_task_sem);
                     break;
@@ -262,8 +262,11 @@ static void twai_receive_task(void *arg)
                     for (int i = 0; i < rx_msg.data_length_code; i++) {
                         data |= (rx_msg.data[i] << (i * 8));
                     }
-                    potencia3 = data;
-                    ESP_LOGI(EXAMPLE_TAG, "Received data value %"PRIu32, data);
+                    float temperatura = ((float)data)/10;
+                    // ESP_LOGI(EXAMPLE_TAG, "temperatura f%", temperatura);
+                    printf("Temperatura: %.1f\n", temperatura);
+                } else {
+                    ESP_LOGI(EXAMPLE_TAG, "Received unexpected message");
                 }
             }
             xSemaphoreGive(ctrl_task_sem);
@@ -296,6 +299,7 @@ static void twai_transmit_task(void *arg)
             while (xSemaphoreTake(stop_ping_sem, 0) != pdTRUE) {
                 twai_transmit(&ping_message, portMAX_DELAY);
                 vTaskDelay(pdMS_TO_TICKS(PING_PERIOD_MS));
+                ESP_LOGI(EXAMPLE_TAG, "PING ENVIADO");
             }
         } else if (action == TX_SEND_START_CMD) {
             //Transmit start command to slave
@@ -317,6 +321,8 @@ static void twai_control_task(void *arg)
     xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
     tx_task_action_t tx_action;
     rx_task_action_t rx_action;
+    
+    twai_reconfigure_alerts(TWAI_ALERT_ABOVE_ERR_WARN | TWAI_ALERT_ERR_PASS | TWAI_ALERT_BUS_OFF, NULL);
 
     for (int iter = 0; iter < NO_OF_ITERS; iter++) {
         ESP_ERROR_CHECK(twai_start());
@@ -334,6 +340,7 @@ static void twai_control_task(void *arg)
         rx_action = RX_RECEIVE_DATA;
         xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
         xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
+
 
         //Send Stop command to slave when enough data messages have been received. Wait for stop response
         xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
@@ -378,10 +385,10 @@ void app_main(void)
     ctrl_task_sem      = xSemaphoreCreateBinary();
     stop_ping_sem      = xSemaphoreCreateBinary();
     done_sem           = xSemaphoreCreateBinary();
-    xTaskCreatePinnedToCore(display_update_task, "Atualiza o painel", 4096, NULL, RX_TASK_PRIO, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore(display_update_task, "Atualiza o painel", 4096, NULL, RX_TASK_PRIO, NULL, 0);
+    xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, 1);
+    xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, 1);
+    xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, 1);
 
     //Install TWAI driver
     ESP_ERROR_CHECK(twai_driver_install(&g_config, &t_config, &f_config));

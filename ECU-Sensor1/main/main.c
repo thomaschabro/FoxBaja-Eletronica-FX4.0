@@ -29,6 +29,7 @@
 #include "driver/twai.h"
 #include "driver/adc.h"
 #include "driver/gpio.h"
+#include "driver/timer.h"
 
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
@@ -37,8 +38,8 @@
 #define RX_TASK_PRIO                    8       //Receiving task priority
 #define TX_TASK_PRIO                    9       //Sending task priority
 #define CTRL_TSK_PRIO                   10      //Control task priority
-#define TX_GPIO_NUM                     GPIO_NUM_5
-#define RX_GPIO_NUM                     GPIO_NUM_4
+#define TX_GPIO_NUM                     GPIO_NUM_4
+#define RX_GPIO_NUM                     GPIO_NUM_5
 #define EXAMPLE_TAG                     "TWAI Slave"
 
 #define ADC_PIN                         34
@@ -57,7 +58,7 @@
 #define TIMER_DIVIDER             16  // Hardware timer clock divider
 #define TIMER_SCALE               (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
 
-#define VEL_PIN                         GPIO_NUM_27
+#define VEL_PIN                         GPIO_NUM_25
 
 typedef enum {
     TX_SEND_PING_RESP,
@@ -74,7 +75,7 @@ typedef enum {
 } rx_task_action_t;
 
 static const twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(TX_GPIO_NUM, RX_GPIO_NUM, TWAI_MODE_NORMAL);
-static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_25KBITS();
+static const twai_timing_config_t t_config = TWAI_TIMING_CONFIG_125KBITS();
 static const twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
 
@@ -98,7 +99,7 @@ static SemaphoreHandle_t done_sem;
 static TimerHandle_t xTimers;
 
 uint32_t potencia1;
-uint32_t velocidade;
+uint32_t velocidade = 0;
 
 int interval = 100;  // ms 
 int TimerId = 1;
@@ -129,27 +130,50 @@ esp_err_t set_timer(void) {
 
 /* --------------------------- Tasks and Functions -------------------------- */
 
-// static void read_rotation(void *arg) {
+bool zera_um = false;
+uint64_t *tempo1 = 0;
+uint64_t *tempo2 = 0;
+uint64_t delta_t = 0;
 
-//     // gpio_set_direction(VEL_PIN, GPIO_MODE_INPUT);
+void IRAM_ATTR vel_callback(void *arg) {
 
-//     // uint32_t n = 0;
+    if (zera_um == false) {
+        tempo1 = timer_get_counter_value(0,0,tempo1);
+        zera_um = true;
+    } else {
+        tempo2 = timer_get_counter_value(0,0,tempo2);
+        zera_um = false;
+        delta_t = tempo2 - tempo1;
+    }
 
-//     // while (1) {
+}
 
-//     //     n += gpio_get_level(VEL_PIN);
-//     //     int x;
-//     //     // if (xQueueReceive(vel_task_queue, &x, portMAX_DELAY) == pdTRUE) {
+static void read_rotation(void *arg) {
 
-            
+    // timer_start(0, 0);
+    float omega = 0;
+    float velocidade = 0;
 
-//     //     // }
-//     //     ESP_LOGI(EXAMPLE_TAG, "n = %d", n);
-    
-//     // }
+    // for (;;) {
+        
 
-// }
+    //     /*  Calcula velocidade  */
+    //     // omega =  3.1415 / (delta_t * 1e-6 * 2 );
+    //     // velocidade = (uint32_t) omega;
+    //     // velocidade *= 0.15;
+    //     velocidade = 15;
+        
 
+    // }
+    while (1) {
+        xQueueReceive(vel_task_queue, &potencia1, portMAX_DELAY);
+        // omega =  3.1415 / (delta_t * 1e-6 * 2 );
+        // velocidade = (uint32_t) omega;
+        velocidade *= 0.15;
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+
+}
 
 static void twai_receive_task(void *arg)
 {
@@ -158,6 +182,7 @@ static void twai_receive_task(void *arg)
         xQueueReceive(rx_task_queue, &action, portMAX_DELAY);
         if (action == RX_RECEIVE_PING) {
             //Listen for pings from master
+            ESP_LOGI(EXAMPLE_TAG, "Listening for ping");
             twai_message_t rx_msg;
             while (1) {
                 twai_receive(&rx_msg, portMAX_DELAY);
@@ -316,6 +341,10 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
+    gpio_set_intr_type(VEL_PIN, GPIO_INTR_POSEDGE);
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(VEL_PIN, vel_callback, NULL);  
+
     set_timer();    
 
     //Create semaphores and tasks
@@ -325,10 +354,10 @@ void app_main(void)
     ctrl_task_sem = xSemaphoreCreateBinary();
     stop_data_sem  = xSemaphoreCreateBinary();
     done_sem  = xSemaphoreCreateBinary();
-    xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, tskNO_AFFINITY);
-    xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
-    // xTaskCreatePinnedToCore(read_rotation, "read_rotation", 4096, NULL, CTRL_TSK_PRIO, NULL, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, 0);
+    xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, 0);
+    xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, 0);
+    xTaskCreatePinnedToCore(read_rotation, "read_rotation", 4096, NULL, CTRL_TSK_PRIO, NULL, 1);
 
     //Install TWAI driver, trigger tasks to start
     ESP_ERROR_CHECK(twai_driver_install(&g_config, &t_config, &f_config));

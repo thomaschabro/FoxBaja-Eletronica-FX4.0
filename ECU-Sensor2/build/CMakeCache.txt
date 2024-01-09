@@ -160,7 +160,7 @@ CMAKE_INSTALL_MANDIR:PATH=
 CMAKE_INSTALL_OLDINCLUDEDIR:PATH=/usr/include
 
 //Install path prefix, prepended onto install directories.
-CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/ECU-Recebe
+CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/ECU-Sensor2
 
 //Run-time variable data (LOCALSTATEDIR/run)
 CMAKE_INSTALL_RUNSTATEDIR:PATH=
@@ -216,7 +216,7 @@ CMAKE_PROJECT_DESCRIPTION:STATIC=
 CMAKE_PROJECT_HOMEPAGE_URL:STATIC=
 
 //Value Computed by CMake
-CMAKE_PROJECT_NAME:STATIC=ECU-Recebe
+CMAKE_PROJECT_NAME:STATIC=ECU-Sensor2
 
 //Path to a program.
 CMAKE_RANLIB:FILEPATH=C:/Espressif/tools/xtensa-esp32-elf/esp-2022r1-11.2.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib.exe
@@ -287,13 +287,13 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 DISABLE_PACKAGE_CONFIG_AND_INSTALL:BOOL=ON
 
 //Value Computed by CMake
-ECU-Recebe_BINARY_DIR:STATIC=C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build
+ECU-Sensor2_BINARY_DIR:STATIC=C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2/build
 
 //Value Computed by CMake
-ECU-Recebe_IS_TOP_LEVEL:STATIC=ON
+ECU-Sensor2_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
-ECU-Recebe_SOURCE_DIR:STATIC=C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2
+ECU-Sensor2_SOURCE_DIR:STATIC=C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Sensor2
 
 //Build mbed TLS programs.
 ENABLE_PROGRAMS:BOOL=
@@ -513,7 +513,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=83
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=84
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -573,7 +573,7 @@ HAVE_TIME_T_SIZE:INTERNAL=TRUE
 //CHECK_TYPE_SIZE: sizeof(time_t)
 TIME_T_SIZE:INTERNAL=8
 //CMAKE_INSTALL_PREFIX during last run
-_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/ECU-Recebe
+_GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Program Files (x86)/ECU-Sensor2
 _Python3_EXECUTABLE:INTERNAL=C:/Espressif/python_env/idf5.0_py3.11_env/Scripts/python.exe
 //Python3 Properties
 _Python3_INTERPRETER_PROPERTIES:INTERNAL=Python;3;11;2;32;;;C:\Espressif\tools\idf-python\3.11.2\Lib;C:\Espressif\tools\idf-python\3.11.2\Lib;C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages;C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages
