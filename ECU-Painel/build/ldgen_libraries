@@ -34,6 +34,8 @@ C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/unity/libunity.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/cmock/libcmock.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/console/libconsole.a
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/esp32-owb/libesp32-owb.a
+C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/ds18b20/libds18b20.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/http_parser/libhttp_parser.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/esp-tls/libesp-tls.a
 C:/Espressif/frameworks/esp-idf-v5.0.2/BAJA/FoxBaja-Eletronica-FX4.0/ECU-Painel/build/esp-idf/esp_adc/libesp_adc.a

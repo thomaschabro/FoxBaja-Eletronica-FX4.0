@@ -1,15 +1,15 @@
 dependencies:
-  espressif/led_strip:
-    component_hash: 1f8cc130ebd557fde64c02fe5fad0cb36d69947498c540ace6f425e1083d7773
+  espressif__led_strip:
+    component_hash: null
     source:
-      service_url: https://api.components.espressif.com/
-      type: service
-    version: 2.4.1
+      path: C:\Espressif\frameworks\esp-idf-v5.0.2\BAJA\FoxBaja-Eletronica-FX4.0\ECU-Sensor1\components\espressif__led_strip
+      type: local
+    version: 2.3.2
   idf:
     component_hash: null
     source:
       type: idf
     version: 5.0.2
-manifest_hash: b56b0155de5f692649d12d2530f74004a4e4c544c693fc86af42c51d66f8ce37
+manifest_hash: e65f8c0893b25edd0496dd123df9c081344e248c2e827dfbc09ad833fafa49e7
 target: esp32
 version: 1.0.0
