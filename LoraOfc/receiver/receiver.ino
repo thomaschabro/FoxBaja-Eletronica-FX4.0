@@ -24,6 +24,7 @@ SX1262 radio = new Module(LoRa_nss, LoRa_dio1, LoRa_nrst, LoRa_busy);
 void setup()
 {
   Serial.begin(115200);
+  pinMode(0, INPUT);
   SPI.begin(LoRa_SCK, LoRa_MISO, LoRa_MOSI, LoRa_nss);
 
   // initialize SX1262 with default settings
@@ -96,4 +97,13 @@ void loop()
     Serial.print(F("failed, code "));
     Serial.println(state);
   }
+
+  if (!digitalRead(0)) {
+    Serial.print("Abort button pressed\n");
+    int state = radio.transmit("panic");
+    if (state) {
+      Serial.print("Aviso enviado para o piloto");
+    }
+  }
+
 }

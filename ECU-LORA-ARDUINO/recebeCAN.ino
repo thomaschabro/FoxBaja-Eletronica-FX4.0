@@ -105,4 +105,29 @@ void loop() {
     String lora_message = "Valor : " + String(potencia1);
     Serial.print("Enviando a mensagem: " + lora_message + "\n");
     int state = radio.transmit(lora_message);
+
+    String receive_string;
+    int receive_state = radio.receive(receive_string);
+
+    if (receive_state == ERR_NONE) {
+      if (receive_string == "panic") {
+        Serial.println("Panic message received");
+        
+        CanFrame panicFrame = { 0 };
+        panicFrame.identifier = 0x0D1;
+        obdFrame.data_length_code = 8;
+        obdFrame.data[0] = 1;
+        obdFrame.data[1] = 1;
+        obdFrame.data[2] = 1;
+        obdFrame.data[3] = 1;    // Best to use 0xAA (0b10101010) instead of 0
+        obdFrame.data[4] = 1;    // CAN works better this way as it needs
+        obdFrame.data[5] = 1;    // to avoid bit-stuffing
+        obdFrame.data[6] = 1;
+        obdFrame.data[7] = 1;
+
+        ESP32Can.writeFrame(panicFrame);
+        Serial.println("Panic message sent");
+      }
+    }
+
 }
