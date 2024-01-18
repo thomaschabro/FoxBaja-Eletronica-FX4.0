@@ -54,6 +54,7 @@
 #define ID_SLAVE2_STOP_RESP     0x0C0
 #define ID_SLAVE2_DATA          0x0C1
 #define ID_SLAVE2_PING_RESP     0x0C2
+#define ID_ECU_LORA             0x0D1
 
 // Para o Display LCD
 #define I2C_MASTER_SCL_IO           GPIO_NUM_22    /*!< gpio number for I2C master clock */
@@ -265,7 +266,12 @@ static void twai_receive_task(void *arg)
                     float temperatura = ((float)data)/10;
                     // ESP_LOGI(EXAMPLE_TAG, "temperatura f%", temperatura);
                     printf("Temperatura: %.1f\n", temperatura);
-                } else {
+                } 
+                else if (rx_msg.identifier == ID_ECU_LORA)
+                {
+                    ESP_LOGI(EXAMPLE_TAG, "Recebeu mensagem do ECU-LORA");
+                }
+                else {
                     ESP_LOGI(EXAMPLE_TAG, "Received unexpected message");
                 }
             }

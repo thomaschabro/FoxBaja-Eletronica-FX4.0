@@ -30,6 +30,8 @@
 #include "driver/adc.h"
 #include "driver/gpio.h"
 #include "driver/timer.h"
+#include "inttypes.h"
+#include "rom/gpio.h"
 
 /* --------------------- Definitions and static variables ------------------ */
 //Example Configuration
@@ -101,9 +103,16 @@ static TimerHandle_t xTimers;
 uint32_t potencia1;
 uint32_t velocidade = 0;
 
-int interval = 100;  // ms 
+int interval = 1000;  // ms 
 int TimerId = 1;
 int raio = 45 * 1e-3; // 45mm
+int64_t esp_timer_get_time(void);
+
+bool zera_um = false;
+int64_t tempo1 = 0;
+int64_t tempo2 = 0;
+int64_t delta_t = 0.00000000001;
+
 /* ------------------------------ Funções Timer ----------------------------- */
 void vtimer_callback( TimerHandle_t pxTimer ) {
 
@@ -127,24 +136,19 @@ esp_err_t set_timer(void) {
     return ESP_OK;
 }
 
-
 /* --------------------------- Tasks and Functions -------------------------- */
-
-bool zera_um = false;
-uint64_t *tempo1 = 0;
-uint64_t *tempo2 = 0;
-uint64_t delta_t = 0;
-
-void IRAM_ATTR vel_callback(void *arg) {
-
-    if (zera_um == false) {
-        tempo1 = timer_get_counter_value(0,0,tempo1);
-        zera_um = true;
-    } else {
-        tempo2 = timer_get_counter_value(0,0,tempo2);
-        zera_um = false;
-        delta_t = tempo2 - tempo1;
-    }
+static void IRAM_ATTR vel_callback(void *arg) {
+    // if (!zera_um) {
+    // timer_get_counter_value(0,0,tempo1);
+    tempo2 = esp_timer_get_time();
+    delta_t = tempo2 - tempo1;
+    tempo1 = tempo2;
+    // } else {
+    //     // timer_get_counter_value(0,0,tempo2);
+    //     tempo2 = esp_timer_get_time();
+    //     zera_um = false;
+    //     delta_t = tempo2 - tempo1;
+    // }
 
 }
 
@@ -159,17 +163,16 @@ static void read_rotation(void *arg) {
 
     //     /*  Calcula velocidade  */
     //     // omega =  3.1415 / (delta_t * 1e-6 * 2 );
-    //     // velocidade = (uint32_t) omega;
-    //     // velocidade *= 0.15;
-    //     velocidade = 15;
+    //     velocidade = (uint32_t) omega;
+    //     velocidade *= 0.15;
         
 
     // }
     while (1) {
-        xQueueReceive(vel_task_queue, &potencia1, portMAX_DELAY);
-        // omega =  3.1415 / (delta_t * 1e-6 * 2 );
-        // velocidade = (uint32_t) omega;
+        omega =  3.1415 / (delta_t * 1e-6 * 2 );
+        velocidade = (float) omega;  
         velocidade *= 0.15;
+        ESP_LOGI(EXAMPLE_TAG, "Velocidade: %f", velocidade);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
@@ -181,16 +184,17 @@ static void twai_receive_task(void *arg)
         rx_task_action_t action;
         xQueueReceive(rx_task_queue, &action, portMAX_DELAY);
         if (action == RX_RECEIVE_PING) {
-            //Listen for pings from master
-            ESP_LOGI(EXAMPLE_TAG, "Listening for ping");
-            twai_message_t rx_msg;
-            while (1) {
-                twai_receive(&rx_msg, portMAX_DELAY);
-                if (rx_msg.identifier == ID_MASTER_PING) {
-                    xSemaphoreGive(ctrl_task_sem);
-                    break;
-                }
-            }
+            // //Listen for pings from master
+            // ESP_LOGI(EXAMPLE_TAG, "Listening for ping");
+            // twai_message_t rx_msg;
+            // while (1) {
+            //     twai_receive(&rx_msg, portMAX_DELAY);
+            //     if (rx_msg.identifier == ID_MASTER_PING) {
+            //         xSemaphoreGive(ctrl_task_sem);
+            //         break;
+            //     }
+            // }
+            xSemaphoreGive(ctrl_task_sem);
         } else if (action == RX_RECEIVE_START_CMD) {
             //Listen for start command from master
             twai_message_t rx_msg;
@@ -341,11 +345,14 @@ void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 
-    gpio_set_intr_type(VEL_PIN, GPIO_INTR_POSEDGE);
-    gpio_install_isr_service(0);
-    gpio_isr_handler_add(VEL_PIN, vel_callback, NULL);  
+    gpio_pad_select_gpio(VEL_PIN);
+    gpio_set_direction(VEL_PIN, GPIO_MODE_INPUT);
+    gpio_pulldown_en(VEL_PIN);
+    gpio_pullup_dis(VEL_PIN);
+    gpio_set_intr_type(VEL_PIN, GPIO_INTR_POSEDGE); 
 
-    set_timer();    
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(VEL_PIN, vel_callback, (void *)VEL_PIN);
 
     //Create semaphores and tasks
     tx_task_queue = xQueueCreate(1, sizeof(tx_task_action_t));
