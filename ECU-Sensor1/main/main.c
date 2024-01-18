@@ -138,18 +138,9 @@ esp_err_t set_timer(void) {
 
 /* --------------------------- Tasks and Functions -------------------------- */
 static void IRAM_ATTR vel_callback(void *arg) {
-    // if (!zera_um) {
-    // timer_get_counter_value(0,0,tempo1);
     tempo2 = esp_timer_get_time();
     delta_t = tempo2 - tempo1;
     tempo1 = tempo2;
-    // } else {
-    //     // timer_get_counter_value(0,0,tempo2);
-    //     tempo2 = esp_timer_get_time();
-    //     zera_um = false;
-    //     delta_t = tempo2 - tempo1;
-    // }
-
 }
 
 static void read_rotation(void *arg) {
@@ -158,16 +149,6 @@ static void read_rotation(void *arg) {
     float omega = 0;
     float velocidade = 0;
 
-    // for (;;) {
-        
-
-    //     /*  Calcula velocidade  */
-    //     // omega =  3.1415 / (delta_t * 1e-6 * 2 );
-    //     velocidade = (uint32_t) omega;
-    //     velocidade *= 0.15;
-        
-
-    // }
     while (1) {
         omega =  3.1415 / (delta_t * 1e-6 * 2 );
         velocidade = (float) omega;  
