@@ -225,7 +225,7 @@ static void twai_receive_task(void *arg)
                 else if (rx_msg.identifier == ID_SLAVE2_PING_RESP) {
                     contador_ping++;
                 }
-                if (contador_ping >= 1) {
+                if (contador_ping >= 0) {
                     ESP_LOGI(EXAMPLE_TAG, "Recebeu os pings");
                     xSemaphoreGive(stop_ping_sem);
                     xSemaphoreGive(ctrl_task_sem);
@@ -335,10 +335,10 @@ static void twai_control_task(void *arg)
         ESP_LOGI(EXAMPLE_TAG, "Driver started");
 
         //Start transmitting pings, and listen for ping response
-        tx_action = TX_SEND_PINGS;
-        rx_action = RX_RECEIVE_PING_RESP;
-        xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
-        xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
+        // tx_action = TX_SEND_PINGS;
+        // rx_action = RX_RECEIVE_PING_RESP;
+        // xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
+        // xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
 
         //Send Start command to slave, and receive data messages
         xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);

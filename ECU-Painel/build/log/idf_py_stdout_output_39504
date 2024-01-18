@@ -1,0 +1,6 @@
+esptool.py v4.7.0
+Serial port COM7
+
+A fatal error occurred: Could not open COM7, the port is busy or doesn't exist.
+(could not open port 'COM7': PermissionError(13, 'Acesso negado.', None, 5))
+
