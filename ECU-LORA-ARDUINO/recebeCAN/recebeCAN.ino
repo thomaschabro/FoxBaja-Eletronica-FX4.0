@@ -70,6 +70,8 @@ void setup() {
     while (true)
       ;
   }
+
+  pinMode(0, INPUT);
 }
 
 void loop() {
@@ -127,7 +129,10 @@ void loop() {
     panicFrame.data[5] = 1;    // to avoid bit-stuffing
     panicFrame.data[6] = 1;
     panicFrame.data[7] = 1;
-    ESP32Can.writeFrame(panicFrame);
-    Serial.println("Panic message sent");
 
+    if (!digitalRead(0)) {
+      Serial.print("Abort button pressed\n");
+      ESP32Can.writeFrame(panicFrame);
+      Serial.println("Panic message sent");
+    }
 }

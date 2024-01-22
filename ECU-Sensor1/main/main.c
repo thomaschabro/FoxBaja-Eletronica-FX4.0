@@ -55,6 +55,7 @@
 #define ID_SLAVE2_STOP_RESP             0x0C0
 #define ID_SLAVE2_DATA                  0x0C1
 #define ID_SLAVE2_PING_RESP             0x0C2
+#define ID_ECU_LORA                     0x0D1
 
 // Para o Timer
 #define TIMER_DIVIDER             16  // Hardware timer clock divider
@@ -101,7 +102,7 @@ static SemaphoreHandle_t done_sem;
 static TimerHandle_t xTimers;
 
 uint32_t potencia1;
-uint32_t velocidade = 0;
+uint32_t velocidade = 10;
 
 int interval = 1000;  // ms 
 int TimerId = 1;
@@ -153,6 +154,7 @@ static void read_rotation(void *arg) {
         omega =  3.1415 / (delta_t * 1e-6 * 2 );
         velocidade = (float) omega;  
         velocidade *= 0.15;
+        velocidade = 15;
         ESP_LOGI(EXAMPLE_TAG, "Velocidade: %f", velocidade);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
@@ -165,19 +167,18 @@ static void twai_receive_task(void *arg)
         rx_task_action_t action;
         xQueueReceive(rx_task_queue, &action, portMAX_DELAY);
         if (action == RX_RECEIVE_PING) {
-            // //Listen for pings from master
-            // ESP_LOGI(EXAMPLE_TAG, "Listening for ping");
-            // twai_message_t rx_msg;
-            // while (1) {
-            //     twai_receive(&rx_msg, portMAX_DELAY);
-            //     if (rx_msg.identifier == ID_MASTER_PING) {
-            //         xSemaphoreGive(ctrl_task_sem);
-            //         break;
-            //     }
-            // }
-            xSemaphoreGive(ctrl_task_sem);
+            //Listen for pings from master
+            ESP_LOGI(EXAMPLE_TAG, "Listening for ping");
+            twai_message_t rx_msg;
+            while (1) {
+                twai_receive(&rx_msg, portMAX_DELAY);
+                if (rx_msg.identifier == ID_MASTER_PING) {
+                    xSemaphoreGive(ctrl_task_sem);
+                    break;
+                }
+            }
         } else if (action == RX_RECEIVE_START_CMD) {
-            //Listen for start command from master
+            // Listen for start command from master
             twai_message_t rx_msg;
             while (1) {
                 twai_receive(&rx_msg, portMAX_DELAY);
@@ -186,12 +187,19 @@ static void twai_receive_task(void *arg)
                     break;
                 }
             }
+            xSemaphoreGive(ctrl_task_sem);
         } else if (action == RX_RECEIVE_STOP_CMD) {
             //Listen for stop command from master
             twai_message_t rx_msg;
             while (1) {
                 twai_receive(&rx_msg, portMAX_DELAY);
                 if (rx_msg.identifier == ID_MASTER_STOP_CMD) {
+                    xSemaphoreGive(stop_data_sem);
+                    xSemaphoreGive(ctrl_task_sem);
+                    break;
+                }
+                else if (rx_msg.identifier == ID_ECU_LORA) {
+                    ESP_LOGI(EXAMPLE_TAG, "Recebeu mensagem do ECU LORA");
                     xSemaphoreGive(stop_data_sem);
                     xSemaphoreGive(ctrl_task_sem);
                     break;
@@ -221,7 +229,7 @@ static void twai_transmit_task(void *arg)
             while (1) {
                 //FreeRTOS tick count used to simulate sensor data -> DEVEMOS MUDAR ESSA PARTE PARA PEGAR DADOS DO SENSOR
                 // uint32_t sensor_data = xTaskGetTickCount();
-                potencia1 = adc1_get_raw(ADC1_CHANNEL_6);
+                // potencia1 = adc1_get_raw(ADC1_CHANNEL_6);
 
                 // Criando a "data" da mensagem com os valores de potencia1 e potencia2
                 for (int i = 0; i < 4; i++) {
@@ -237,6 +245,7 @@ static void twai_transmit_task(void *arg)
                 ESP_LOGI(EXAMPLE_TAG, " = ");
                 vTaskDelay(pdMS_TO_TICKS(DATA_PERIOD_MS));
                 if (xSemaphoreTake(stop_data_sem, 0) == pdTRUE) {
+                    ESP_LOGI(EXAMPLE_TAG, "Stop transmitting data");
                     break;
                 }
             }
