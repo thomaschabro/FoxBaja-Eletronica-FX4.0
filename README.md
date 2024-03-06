@@ -1,6 +1,6 @@
 ## **FoxBaja Eletronica FX4.0**
 
-Este repositório contém o código e toda a documentação necessária para o desenvolvimento do subsistema de **eletrônica** do carro da equipe Insper Fox Baja, em sua versão FX4.0. Nesta versão, o carro irá receber tração nas 4 rodas e um novo sistema de telemetria, baseado em barramento CAN (Controller Area Network).
+Este repositório contém o código e toda a documentação necessária para o desenvolvimento do subsistema de **eletrônica** do carro da equipe Insper Fox Baja, em sua versão FX4.0. Nesta versão, o carro irá receber tração nas 4 rodas e um novo sistema de eletrônica, com foco em robustez e modularidade. Com isso, a comunicação foi baseada em barramento CAN (Controller Area Network) e foram utilizadas 4 ECU's para modularizar a leitura dos sensores e a comunicação em geral.
 
 ---
 
