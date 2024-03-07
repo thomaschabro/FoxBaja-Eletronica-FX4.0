@@ -43,8 +43,9 @@
 #define RX_GPIO_NUM                     GPIO_NUM_4
 #define EXAMPLE_TAG                     "TWAI Slave"
 
-#define ADC_PIN                         34
+#define ADC_PIN                         34    // GPIO pin of the ADC
 
+// TWAI message identifiers
 #define ID_MASTER_STOP_CMD              0x0A0
 #define ID_MASTER_START_CMD             0x0A1
 #define ID_MASTER_PING                  0x0A2
@@ -55,6 +56,11 @@
 #define ID_SLAVE2_DATA                  0x0C1
 #define ID_SLAVE2_PING_RESP             0x0C2
 
+// GPIO Pin of the capacitive sensor
+#define CAPAC_SENSOR_1                  10
+#define CAPAC_SENSOR_2                  11
+
+// DS18B20 Configuration
 #define GPIO_DS18B20_0       (GPIO_NUM_22)
 #define MAX_DEVICES          (8)
 #define DS18B20_RESOLUTION   (DS18B20_RESOLUTION_12_BIT)
@@ -84,8 +90,16 @@ static const twai_message_t ping_resp = {.identifier = ID_SLAVE2_PING_RESP, .dat
 static const twai_message_t stop_resp = {.identifier = ID_SLAVE2_STOP_RESP, .data_length_code = 0,
                                         .data = {0, 0 , 0 , 0 ,0 ,0 ,0 ,0}};
 //Data bytes of data message will be initialized in the transmit task
-static twai_message_t data_message = {.identifier = ID_SLAVE2_DATA, .data_length_code = 8,
+static twai_message_t data_message = {.identifier = ID_SLAVE2_DATA, .data_length_code = 12,
                                      .data = {0, 0 , 0 , 0 ,0 ,0 ,0 ,0}};
+
+/*
+| DATA | 0 | 1 | 2 | 3 | 4 | 5 | 7 | 8 | 9 | 10 | 11 | 12 | 
+| ---- | -------------------------------------------------|
+| ---- |  temperatura  |   combust 1   |    combust 2     |
+
+
+*/
 
 static QueueHandle_t tx_task_queue;
 static QueueHandle_t rx_task_queue;
@@ -95,10 +109,15 @@ static SemaphoreHandle_t done_sem;
 
 float temperatura = 0;
 
+// DS18B20 Variables
 int num_devices = 0;
 DS18B20_Info * devices[MAX_DEVICES] = {0};
 OneWireBus * owb;
 owb_rmt_driver_info rmt_driver_info;
+
+// Capacitive Sensors Variables
+int capac_sensor_1 = 0;
+int capac_sensor_2 = 0;
 
 /* --------------------------- Tasks and Functions -------------------------- */
 static void ds18b20_read_task(void *pvParameter)
@@ -140,13 +159,40 @@ static void ds18b20_read_task(void *pvParameter)
                 printf("  %d: %.1f    %d errors\n", i, readings[i], errors_count[i]);
             }
 
-            vTaskDelayUntil(&last_wake_time, SAMPLE_PERIOD / portTICK_PERIOD_MS);
+            vTaskDelay(500 / portTICK_PERIOD_MS);
         }
     }
     else
     {
         printf("\nNo DS18B20 devices detected!\n");
     }
+}
+
+static void gas_read_task(void *pvParameter)
+{
+    gpio_set_direction(CAPAC_SENSOR_1, GPIO_MODE_INPUT);
+    gpio_set_direction(CAPAC_SENSOR_2, GPIO_MODE_INPUT);
+
+    for (;;)
+    {
+        capac_sensor_1 = gpio_get_level(CAPAC_SENSOR_1);
+        capac_sensor_2 = gpio_get_level(CAPAC_SENSOR_2);
+
+        if (capac_sensor_1 == 0 && capac_sensor_2 == 1)
+        {
+            printf("ERROR: Upper sensor is active, but lower isn't \n");
+            continue;
+        }
+        else
+        {
+            printf("Sensor 1: %d\n", capac_sensor_1);
+            printf("Sensor 2: %d\n", capac_sensor_2);
+        }
+
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+
+
 }
 
 
@@ -216,6 +262,13 @@ static void twai_transmit_task(void *arg)
                 for (int i = 0; i < 4; i++) {
                     data_message.data[i] = ((int)temperatura >> (i * 8)) & 0xFF;
                 }
+                for (int i = 4; i < 8; i++) {
+                    data_message.data[i] = ((int)capac_sensor_1 >> (i * 8)) & 0xFF;
+                }
+                for (int i = 8; i < 12; i++) {
+                    data_message.data[i] = ((int)capac_sensor_2 >> (i * 8)) & 0xFF;
+                }
+                
                 twai_transmit(&data_message, portMAX_DELAY);
                 // ESP_LOGI(EXAMPLE_TAG, "Transmitted data value f%", temperatura);
                 vTaskDelay(pdMS_TO_TICKS(DATA_PERIOD_MS));
