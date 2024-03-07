@@ -149,14 +149,18 @@ static void read_rotation(void *arg) {
     // timer_start(0, 0);
     float omega = 0;
     float velocidade = 0;
+    float rpm = 0;
 
     while (1) {
-        omega =  3.1415 / (delta_t * 1e-6 * 2 );
-        velocidade = (float) omega;  
-        velocidade *= 0.15;
-        velocidade = 15;
-        ESP_LOGI(EXAMPLE_TAG, "Velocidade: %f", velocidade);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // omega =  3.1415 / (delta_t * 1e-6 * 2 );
+        // velocidade = (float) omega;  
+        // velocidade *= 0.04;
+        // ESP_LOGI(EXAMPLE_TAG, "Velocidade: %f", velocidade);
+        // vTaskDelay(pdMS_TO_TICKS(1000));
+
+        rpm = (60 / (delta_t * 1e-6)) / 3;     
+        printf("RPM: %f\n", rpm);
+        vTaskDelay(pdMS_TO_TICKS(500));   
     }
 
 }
@@ -272,14 +276,14 @@ static void twai_control_task(void *arg)
         ESP_LOGI(EXAMPLE_TAG, "Driver started");
 
         //Listen of pings from master   
-        rx_action = RX_RECEIVE_PING;
-        xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
-        xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
+        // rx_action = RX_RECEIVE_PING;
+        // xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
+        // xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
 
-        //Send ping response
-        tx_action = TX_SEND_PING_RESP;
-        xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
-        xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
+        // //Send ping response
+        // tx_action = TX_SEND_PING_RESP;
+        // xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
+        // xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
 
         /* 
         HANDSHAKE FEITO COM SUCESSO
@@ -287,9 +291,9 @@ static void twai_control_task(void *arg)
         */
 
         //Listen for start command
-        rx_action = RX_RECEIVE_START_CMD;
-        xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
-        xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
+        // rx_action = RX_RECEIVE_START_CMD;
+        // xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
+        // xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
 
         //Start sending data messages and listen for stop command
         tx_action = TX_SEND_DATA;
