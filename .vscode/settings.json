@@ -10,6 +10,7 @@
     "freertos.h": "c",
     "gpio.h": "c",
     "lora.h": "c",
-    "timer.h": "c"
+    "timer.h": "c",
+    "adc.h": "c"
   }
 }

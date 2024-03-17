@@ -1,0 +1,35 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\__main__.py", line 9, in <module>
+    esptool._main()
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\__init__.py", line 1139, in _main
+    main()
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\__init__.py", line 751, in main
+    esp = esp.run_stub()
+          ^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 1013, in run_stub
+    self.mem_block(field[from_offs:to_offs], seq)
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 815, in mem_block
+    return self.check_command(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 467, in check_command
+    val, data = self.command(op, data, chk, timeout=timeout)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 426, in command
+    self.write(pkt)
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\esptool\loader.py", line 379, in write
+    self._port.write(buf)
+  File "C:\Espressif\python_env\idf5.0_py3.11_env\Lib\site-packages\serial\serialwin32.py", line 321, in write
+    win32.GetOverlappedResult(self._port_handle, self._overlapped_write, ctypes.byref(n), True)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "C:\Espressif\frameworks\esp-idf-v5.0.2\components\esptool_py\esptool\esptool.py", line 11, in <module>
+    sys.exit(subprocess.run([sys.executable, '-m', 'esptool'] + sys.argv[1:]).returncode)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "subprocess.py", line 550, in run
+  File "subprocess.py", line 1199, in communicate
+  File "subprocess.py", line 1262, in wait
+  File "subprocess.py", line 1543, in _wait
+KeyboardInterrupt
+^C

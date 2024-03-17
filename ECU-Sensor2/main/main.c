@@ -43,8 +43,6 @@
 #define RX_GPIO_NUM                     GPIO_NUM_4
 #define EXAMPLE_TAG                     "TWAI Slave"
 
-#define ADC_PIN                         34    // GPIO pin of the ADC
-
 // TWAI message identifiers
 #define ID_MASTER_STOP_CMD              0x0A0
 #define ID_MASTER_START_CMD             0x0A1
@@ -57,8 +55,8 @@
 #define ID_SLAVE2_PING_RESP             0x0C2
 
 // GPIO Pin of the capacitive sensor
-#define CAPAC_SENSOR_1                  10
-#define CAPAC_SENSOR_2                  11
+#define CAPAC_SENSOR_1                  GPIO_NUM_35
+#define CAPAC_SENSOR_2                  GPIO_NUM_34
 
 // DS18B20 Configuration
 #define GPIO_DS18B20_0       (GPIO_NUM_22)
@@ -90,14 +88,15 @@ static const twai_message_t ping_resp = {.identifier = ID_SLAVE2_PING_RESP, .dat
 static const twai_message_t stop_resp = {.identifier = ID_SLAVE2_STOP_RESP, .data_length_code = 0,
                                         .data = {0, 0 , 0 , 0 ,0 ,0 ,0 ,0}};
 //Data bytes of data message will be initialized in the transmit task
-static twai_message_t data_message = {.identifier = ID_SLAVE2_DATA, .data_length_code = 12,
+static twai_message_t data_message = {.identifier = ID_SLAVE2_DATA, .data_length_code = 8,
                                      .data = {0, 0 , 0 , 0 ,0 ,0 ,0 ,0}};
 
 /*
-| DATA | 0 | 1 | 2 | 3 | 4 | 5 | 7 | 8 | 9 | 10 | 11 | 12 | 
-| ---- | -------------------------------------------------|
-| ---- |  temperatura  |   combust 1   |    combust 2     |
+Organização do pacote de dados da ECU - Traseira por bytes
 
+| DATA | 0 | 1 | 2 | 3 |      4      | 5 | 7 | 8 | 9 | 10 | 11 | 12 | 
+| ---- | -----------------------------------------------------------|
+| ---- |  temperatura  | combustivel | ---------------------------- |
 
 */
 
@@ -116,8 +115,9 @@ OneWireBus * owb;
 owb_rmt_driver_info rmt_driver_info;
 
 // Capacitive Sensors Variables
-int capac_sensor_1 = 0;
-int capac_sensor_2 = 0;
+uint8_t capac_sensor_1 = 0;
+uint8_t capac_sensor_2 = 0;
+uint8_t fuel_alarm = 0;
 
 /* --------------------------- Tasks and Functions -------------------------- */
 static void ds18b20_read_task(void *pvParameter)
@@ -130,6 +130,7 @@ static void ds18b20_read_task(void *pvParameter)
 
         while (1)
         {
+            ESP_LOGI(EXAMPLE_TAG, "Reading DS18B20 devices...");
             ds18b20_convert_all(owb);
 
             // In this application all devices use the same resolution,
@@ -172,29 +173,51 @@ static void gas_read_task(void *pvParameter)
 {
     gpio_set_direction(CAPAC_SENSOR_1, GPIO_MODE_INPUT);
     gpio_set_direction(CAPAC_SENSOR_2, GPIO_MODE_INPUT);
+    uint8_t sens1[20] = {0};
+    uint8_t sens2[20] = {0};
 
+    int check_index = 0;
     for (;;)
     {
         capac_sensor_1 = gpio_get_level(CAPAC_SENSOR_1);
         capac_sensor_2 = gpio_get_level(CAPAC_SENSOR_2);
 
-        if (capac_sensor_1 == 0 && capac_sensor_2 == 1)
+        for (int i = 0; i < 19; i++)
         {
-            printf("ERROR: Upper sensor is active, but lower isn't \n");
-            continue;
-        }
-        else
-        {
-            printf("Sensor 1: %d\n", capac_sensor_1);
-            printf("Sensor 2: %d\n", capac_sensor_2);
+            sens1[i] = sens1[i+1];
+            sens2[i] = sens2[i+1];
         }
 
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        sens1[19] = capac_sensor_1;
+        sens2[19] = capac_sensor_2;
+
+        if (check_index == 6)
+        {
+            // Check for the last 20 values. If the majority is 1, then the sensor is detecting gas
+            int count1 = 0;
+            int count2 = 0;
+            for (int i = 0; i < 20; i++)
+            {
+                if (sens1[i] == 1)
+                {
+                    count1++;
+                }
+                if (sens2[i] == 1)
+                {
+                    count2++;
+                }
+            }
+            if (count1 > 14 && count2 > 14)
+            {
+                fuel_alarm = 1;
+            }
+        }
+
+        check_index++;
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+
     }
-
-
 }
-
 
 static void twai_receive_task(void *arg)
 {
@@ -262,12 +285,7 @@ static void twai_transmit_task(void *arg)
                 for (int i = 0; i < 4; i++) {
                     data_message.data[i] = ((int)temperatura >> (i * 8)) & 0xFF;
                 }
-                for (int i = 4; i < 8; i++) {
-                    data_message.data[i] = ((int)capac_sensor_1 >> (i * 8)) & 0xFF;
-                }
-                for (int i = 8; i < 12; i++) {
-                    data_message.data[i] = ((int)capac_sensor_2 >> (i * 8)) & 0xFF;
-                }
+                data_message.data[4] = fuel_alarm;
                 
                 twai_transmit(&data_message, portMAX_DELAY);
                 // ESP_LOGI(EXAMPLE_TAG, "Transmitted data value f%", temperatura);
@@ -298,25 +316,25 @@ static void twai_control_task(void *arg)
         ESP_ERROR_CHECK(twai_start());
         ESP_LOGI(EXAMPLE_TAG, "Driver started");
 
-        //Listen of pings from master   
-        rx_action = RX_RECEIVE_PING;
-        xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
-        xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
+        // //Listen of pings from master   
+        // rx_action = RX_RECEIVE_PING;
+        // xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
+        // xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
 
-        //Send ping response
-        tx_action = TX_SEND_PING_RESP;
-        xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
-        xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
+        // //Send ping response
+        // tx_action = TX_SEND_PING_RESP;
+        // xQueueSend(tx_task_queue, &tx_action, portMAX_DELAY);
+        // xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
 
         /* 
         HANDSHAKE FEITO COM SUCESSO
         AGORA ESPERA POR MSG QUE PODE COMECAR
         */
 
-        //Listen for start command
-        rx_action = RX_RECEIVE_START_CMD;
-        xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
-        xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
+        // //Listen for start command
+        // rx_action = RX_RECEIVE_START_CMD;
+        // xQueueSend(rx_task_queue, &rx_action, portMAX_DELAY);
+        // xSemaphoreTake(ctrl_task_sem, portMAX_DELAY);
 
         //Start sending data messages and listen for stop command
         tx_action = TX_SEND_DATA;
@@ -445,7 +463,8 @@ void app_main(void)
     xTaskCreatePinnedToCore(twai_receive_task, "TWAI_rx", 4096, NULL, RX_TASK_PRIO, NULL, 0);
     xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, 0);
     xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, 0);
-    // xTaskCreatePinnedToCore(ds18b20_read_task, "DS18B20", 4096, NULL, CTRL_TSK_PRIO, NULL, 1);
+    xTaskCreatePinnedToCore(ds18b20_read_task, "DS18B20", 4096, NULL, CTRL_TSK_PRIO, NULL, 1);
+    xTaskCreatePinnedToCore(gas_read_task, "GAS", 4096, NULL, CTRL_TSK_PRIO, NULL, 1);
 
     //Install TWAI driver, trigger tasks to start
     ESP_ERROR_CHECK(twai_driver_install(&g_config, &t_config, &f_config));

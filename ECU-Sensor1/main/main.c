@@ -40,11 +40,9 @@
 #define RX_TASK_PRIO                    8       //Receiving task priority
 #define TX_TASK_PRIO                    9       //Sending task priority
 #define CTRL_TSK_PRIO                   10      //Control task priority
-#define TX_GPIO_NUM                     GPIO_NUM_5
-#define RX_GPIO_NUM                     GPIO_NUM_4
+#define TX_GPIO_NUM                     GPIO_NUM_17
+#define RX_GPIO_NUM                     GPIO_NUM_16
 #define EXAMPLE_TAG                     "TWAI Slave"
-
-#define ADC_PIN                         34
 
 #define ID_MASTER_STOP_CMD              0x0A0
 #define ID_MASTER_START_CMD             0x0A1
@@ -101,7 +99,7 @@ static SemaphoreHandle_t done_sem;
 
 static TimerHandle_t xTimers;
 
-uint32_t potencia1;
+uint32_t bat_level;
 uint32_t velocidade = 10;
 
 int interval = 1000;  // ms 
@@ -116,9 +114,7 @@ int64_t delta_t = 0.00000000001;
 
 /* ------------------------------ Funções Timer ----------------------------- */
 void vtimer_callback( TimerHandle_t pxTimer ) {
-
-    xQueueSendFromISR(vel_task_queue, &potencia1, NULL);   
-
+    xQueueSendFromISR(vel_task_queue, &bat_level, NULL);   
 }
 
 esp_err_t set_timer(void) {
@@ -152,17 +148,27 @@ static void read_rotation(void *arg) {
     float rpm = 0;
 
     while (1) {
-        // omega =  3.1415 / (delta_t * 1e-6 * 2 );
-        // velocidade = (float) omega;  
-        // velocidade *= 0.04;
-        // ESP_LOGI(EXAMPLE_TAG, "Velocidade: %f", velocidade);
+        omega =  3.1415 / (delta_t * 1e-6 * 2 );
+        velocidade = (float) omega;  
+        velocidade *= 0.04;
+        ESP_LOGI(EXAMPLE_TAG, "Velocidade: %f", velocidade);
         // vTaskDelay(pdMS_TO_TICKS(1000));
 
-        rpm = (60 / (delta_t * 1e-6)) / 3;     
-        printf("RPM: %f\n", rpm);
-        vTaskDelay(pdMS_TO_TICKS(500));   
+        // rpm = (60 / (delta_t * 1e-6)) / 3;     
+        // printf("RPM: %f\n", rpm);
+        vTaskDelay(pdMS_TO_TICKS(100));   
     }
 
+}
+
+static void read_battery_task(void *arg) {
+    while (1) {
+        adc2_get_raw(ADC2_CHANNEL_9, ADC_WIDTH_BIT_12, &bat_level);
+        // Convert to voltage
+        float voltage = (((float)bat_level * 3 * 3.3) / 4095) + 1;
+        ESP_LOGI(EXAMPLE_TAG, "Battery level: %.1f", voltage);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
 
 static void twai_receive_task(void *arg)
@@ -231,21 +237,18 @@ static void twai_transmit_task(void *arg)
             //Transmit data messages until stop command is received
             ESP_LOGI(EXAMPLE_TAG, "Start transmitting data");
             while (1) {
-                //FreeRTOS tick count used to simulate sensor data -> DEVEMOS MUDAR ESSA PARTE PARA PEGAR DADOS DO SENSOR
-                // uint32_t sensor_data = xTaskGetTickCount();
-                // potencia1 = adc1_get_raw(ADC1_CHANNEL_6);
 
-                // Criando a "data" da mensagem com os valores de potencia1 e potencia2
-                for (int i = 0; i < 4; i++) {
-                    data_message.data[i] = (potencia1 >> (i * 8)) & 0xFF;
-                }
+                // Setando data da mensagem com os valores de bat_level e velocidade
+                // for (int i = 0; i < 4; i++) {
+                //     data_message.data[i] = (bat_level >> (i * 8)) & 0xFF;
+                // }
                 for (int i = 4; i < 8; i++) {
                     data_message.data[i] = (velocidade >> ((i - 4) * 8)) & 0xFF;
                 }
 
                 twai_transmit(&data_message, portMAX_DELAY);
-                ESP_LOGI(EXAMPLE_TAG, "Transmitted data1 value %"PRIu32, potencia1);
-                ESP_LOGI(EXAMPLE_TAG, "Transmitted velo value %"PRIu32, velocidade);
+                // ESP_LOGI(EXAMPLE_TAG, "Transmitted battery value %"PRIu32, bat_level);
+                ESP_LOGI(EXAMPLE_TAG, "Transmitted speed value %"PRIu32, velocidade);
                 ESP_LOGI(EXAMPLE_TAG, " = ");
                 vTaskDelay(pdMS_TO_TICKS(DATA_PERIOD_MS));
                 if (xSemaphoreTake(stop_data_sem, 0) == pdTRUE) {
@@ -348,6 +351,9 @@ void app_main(void)
     gpio_install_isr_service(0);
     gpio_isr_handler_add(VEL_PIN, vel_callback, (void *)VEL_PIN);
 
+    // Configure ADC
+    adc2_config_channel_atten(ADC2_CHANNEL_9, ADC_ATTEN_DB_11);
+
     //Create semaphores and tasks
     tx_task_queue = xQueueCreate(1, sizeof(tx_task_action_t));
     rx_task_queue = xQueueCreate(1, sizeof(rx_task_action_t));
@@ -359,6 +365,7 @@ void app_main(void)
     xTaskCreatePinnedToCore(twai_transmit_task, "TWAI_tx", 4096, NULL, TX_TASK_PRIO, NULL, 0);
     xTaskCreatePinnedToCore(twai_control_task, "TWAI_ctrl", 4096, NULL, CTRL_TSK_PRIO, NULL, 0);
     xTaskCreatePinnedToCore(read_rotation, "read_rotation", 4096, NULL, CTRL_TSK_PRIO, NULL, 1);
+    xTaskCreatePinnedToCore(read_battery_task, "read_battery", 4096, NULL, CTRL_TSK_PRIO, NULL, 1);
 
     //Install TWAI driver, trigger tasks to start
     ESP_ERROR_CHECK(twai_driver_install(&g_config, &t_config, &f_config));

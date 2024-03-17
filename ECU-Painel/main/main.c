@@ -117,9 +117,13 @@ static TimerHandle_t xTimers;
 
 int interval = 500; 
 int TimerId = 1;
-int potencia1 = 0;
+
+// Variáveis de sensores do carro
+int bat_level = 0;
 int velocidade = 0;
-int potencia3 = 0;
+float temperatura = 0;
+int combustivel1 = 0;
+int combustivel2 = 0;
 
 /* ------------------------------ Funções LCD ----------------------------- */
 static esp_err_t i2c_master_init(void)
@@ -170,6 +174,39 @@ esp_err_t set_timer(void) {
 }
 
 /* --------------------------- Tasks and Functions -------------------------- */
+static void update_leds_task(void *arg) {
+    while (1) {
+        //Update LEDs based on current state
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+
+static void clean_display(void) {
+    uint8_t data[20];
+    sprintf((char *)data, "                    ");
+    for (int i = 0; i < 4; i++) {
+        lcd_put_cur(i, 0);
+        lcd_send_string((char *)data);
+    }
+}
+
+static void panic_display(void) {
+    uint8_t line1[20] = "ALERTA VINDO";
+    uint8_t line2[20] = "DO BOX";
+    uint8_t line3[20] = " =================== ";
+    
+    for (int i = 0; i < 6; i++) {
+        lcd_put_cur(0, 0);
+        lcd_send_string((char *)line3);
+        lcd_put_cur(1, 0);
+        lcd_send_string((char *)line1);
+        lcd_put_cur(2, 0);
+        lcd_send_string((char *)line2);
+        lcd_put_cur(3, 0);
+        lcd_send_string((char *)line3);
+    }
+
+}
 
 static void display_update_task(void *arg) {
     uint8_t data[20];
@@ -180,7 +217,7 @@ static void display_update_task(void *arg) {
         int rec;
         if (xQueueReceive(display_task_queue, &rec, portMAX_DELAY) == pdTRUE) {
 
-            // Limpando
+            // Limpando o display
             sprintf((char *)data, "Potencia1: %s", "       ");
             lcd_put_cur(1, 0);
             lcd_send_string((char *)data);
@@ -189,18 +226,31 @@ static void display_update_task(void *arg) {
             lcd_put_cur(3, 0);
             lcd_send_string((char *)data);
 
-            sprintf((char *)data, "Potencia1: %d", potencia1);
+            // Verifica se chegou mensagem de panico LoRa
+            if (rec == 400) {
+                uint8_t line1[20] = "ALERTA VINDO";
+                uint8_t line2[20] = "DO BOX";
+                uint8_t line3[20] = " =================== ";
+
+                for (int i = 0; i < 6; i++) {
+                    clean_display();
+                    vTaskDelay(1000 / portTICK_PERIOD_MS);
+                    panic_display();
+                    vTaskDelay(1000 / portTICK_PERIOD_MS);
+                }
+            }
+
+            sprintf((char *)data, "Bat : %d", bat_level);
             lcd_put_cur(1, 0);
             lcd_send_string((char *)data);
 
-            sprintf((char *)data, "Velocidade: %d", velocidade);
+            sprintf((char *)data, "Vel : %d", velocidade);
             lcd_put_cur(2, 0);
             lcd_send_string((char *)data);
 
-            sprintf((char *)data, "Potencia3: %d", potencia3);
+            sprintf((char *)data, "Temp: %d", temperatura);
             lcd_put_cur(3, 0);
             lcd_send_string((char *)data); 
-
         }
     
     }
@@ -245,8 +295,8 @@ static void twai_receive_task(void *arg)
                     for (int i = 0; i < 4; i++) {
                         data1 |= (rx_msg.data[i] << (i * 8));
                     }
-                    potencia1 = (int) data1;
-                    ESP_LOGI(EXAMPLE_TAG, "Received data1 value %d", potencia1);
+                    bat_level = (int) data1;
+                    ESP_LOGI(EXAMPLE_TAG, "Received bat value %d", bat_level);
 
                     // Ler segunda parte do dado
                     uint32_t data2 = 0;
@@ -264,12 +314,19 @@ static void twai_receive_task(void *arg)
                         data |= (rx_msg.data[i] << (i * 8));
                     }
                     float temperatura = ((float)data)/10;
-                    // ESP_LOGI(EXAMPLE_TAG, "temperatura f%", temperatura);
+
+                    combustivel1 = (int) rx_msg.data[4];
+                    combustivel2 = (int) rx_msg.data[5];
+
                     printf("Temperatura: %.1f\n", temperatura);
+                    printf("Combustivel1: %d\n", combustivel1);
+                    printf("Combustivel2: %d\n", combustivel2);
                 } 
                 else if (rx_msg.identifier == ID_ECU_LORA)
                 {
                     ESP_LOGI(EXAMPLE_TAG, "Recebeu mensagem do ECU-LORA");
+                    int error = 400;
+                    xQueueSend(display_task_queue, &error, portMAX_DELAY);
                 }
                 else {
                     ESP_LOGI(EXAMPLE_TAG, "Received unexpected message");
